@@ -1,0 +1,182 @@
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="icon" type="image/png" href="https://github.com/gapiapja/gapiapja.github.io/raw/main/asset/favicon.png">
+  <title>gapiapja</title>
+  <script src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script>$(document).ready(function() {
+  $(".nama").click(function(){
+     window.location.href = 'https://github.com/gapiapja','_blank';
+   });
+  var a = $(".loading");
+  a.delay(a.attr("delay-hide")).slideUp();
+});
+  jQuery('#main').css('opacity', '0.6');</script>
+<style>
+ @import url('https://fonts.googleapis.com/css?family=Lobster');
+.loading {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: limegreen;
+  z-index: 99;
+}
+.act-btn{
+	display: block;
+	width: 50px;
+	height: 50px;
+	line-height: 50px;
+	text-align: center;
+	color: white;
+	font-size: 30px;
+	font-weight: bold;
+	border-radius: 50%;
+	-webkit-border-radius: 50%;
+	text-decoration: none;
+	transition: ease all 0.3s;
+	position: fixed;
+	right: 30px;
+	bottom:30px;
+}
+.act-btn2{
+	display: block;
+	width: 190px;
+	height: 50px;
+	line-height: 50px;
+	text-align: center;
+	color: white;
+	font-size: 30px;
+	font-weight: bold;
+	border-radius: 50%;
+	-webkit-border-radius: 50%;
+	text-decoration: none;
+	transition: ease all 0.3s;
+	position: fixed;
+	right: 30px;
+	bottom:30px;
+}
+.act-btn3{
+	display: block;
+	width: 350px;
+	height: 50px;
+	line-height: 50px;
+	text-align: center;
+	color: white;
+	font-size: 30px;
+	font-weight: bold;
+	border-radius: 50%;
+	-webkit-border-radius: 50%;
+	text-decoration: none;
+	transition: ease all 0.3s;
+	position: fixed;
+	right: 30px;
+	bottom:30px;
+}
+.fa {
+  padding: 20px;
+  font-size: 30px;
+  width: 30px;
+  text-align: center;
+  text-decoration: none;
+  margin: 5px 2px;
+  border-radius: 50%;
+}
+
+.fa:hover {
+    opacity: 0.7;
+}
+
+.fa-facebook {
+  background: #3B5998;
+  color: white;
+}
+
+.fa-youtube {
+  background: #bb0000;
+  color: white;
+}
+
+.fa-instagram {
+  background: #125688;
+  color: white;
+}
+
+.loading:after {
+  content: "";
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: -30px;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  margin: auto;
+  border: 6px solid #f2f2f2;
+  border-top: 6px dotted #f2f2f2;
+  border-bottom: 6px dotted #f2f2f2;
+  border-radius: 50%;
+  animation: loading 2s infinite;
+}
+.ayam h1 {
+	color: #fff;
+	font-family: 'Museo Sans', Avenir, 'Helvetica Neue', Helvetica, sans-serif;
+	font-weight: 900;
+	font-size: 15vmin;
+	text-align: center;
+	font-size: 15vmin; /* If you want to be extra-fancy */
+	line-height: 110%;
+	text-shadow: 0.05em 0.05em 0.1em #000;
+	text-shadow: 0 0.025em 0.05em rgba(0,0,0,0.75), 0 0.05em 0.1em rgba(0,0,0,0.5);
+}
+.unselectable {
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        color: #cc0000;
+}
+.loading:before {
+  font-family: 'Lobster', cursive;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: white;
+  content: "Loading...";
+  position: absolute;
+  top: 57%;
+  text-align: center;
+  right: 0;
+  left: 0;
+  margin: auto;
+}
+
+.ayam {
+	width:99%;
+	min-height:75vh;
+	background: no-repeat fixed url(https://i.ibb.co/YkTVxNF/b484279c2d7147f08166d18593a94c20.jpg) center / cover; /* from Unsplash */
+	margin-top:50px;
+	
+	/* This is what centers it */
+	display: flex;
+    	justify-content: center;
+    	align-items: center;
+}
+
+@keyframes loading {
+  0% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(360deg);
+  }
+}
+}
+</style>
+</head>
+<body class="ayam" style="">
+  <div id="main" class="unselectable"><h1 class="nama">Gapiapja</h1></div>
+  <a href="https://m.youtube.com/channel/UCiMlXjOl7bBlLBSmSTHabPg" class="act-btn3"><span class="fa fa-youtube"></span></a>
+  <div class="loading" delay-hide="5000" style="display: none;"></div> 
+</body>
