@@ -55,7 +55,7 @@ function nonTo() {document.getElementById('tombo').style.display = "none";} func
   }
  function ketek() {
     if(p<texi.length){
-      document.getElementById("texi").innerHTML += text.charAt(p);
+      document.getElementById("texi").innerHTML += texi.charAt(p);
       p++;
       setTimeout(ketek,100);
     }
