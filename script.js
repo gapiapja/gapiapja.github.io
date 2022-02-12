@@ -14,6 +14,10 @@ function nonTo() {document.getElementById('tombo').style.display = "none";} func
     
   var i=0,text;
   text = ""
+  var p=0,texi;
+  texi = ""
+  var y=0,texi2;
+  texi2 = ""
   var u=0,text2;
   text2 = ""
   var o=0,text3;
@@ -48,6 +52,24 @@ function nonTo() {document.getElementById('tombo').style.display = "none";} func
     if(a==textakhir.length){
     document.getElementById("textakhir").innerHTML = "I Love You &#10084;";
     iloveu();siap();}
+  }
+ function ketek() {
+    if(p<texi.length){
+      document.getElementById("texi").innerHTML += text.charAt(p);
+      p++;
+      setTimeout(ketek,100);
+    }
+    if(p==texi.length){
+    ketekk();}
+  }
+  function ketekk() {
+    if(y<texi2.length){
+      document.getElementById("texi2").innerHTML += texi2.charAt(y);
+      y++;
+      setTimeout(ketekk,200);
+    }
+    if(y==texi2.length){
+    ketikakhiri();}
   }
  function ketikakhiri() {
     if(k<tekok.length){
