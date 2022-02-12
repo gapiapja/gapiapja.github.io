@@ -18,6 +18,7 @@ function nonTo() {document.getElementById('tombo').style.display = "none";} func
   var o=0,text3;
   text3 = "...                                     "
   var a=0,textakhir;
+  var k=0,tekok;
 
   function ketik() {
     if(i<text.length){
@@ -45,6 +46,16 @@ function nonTo() {document.getElementById('tombo').style.display = "none";} func
     }
     if(a==textakhir.length){
     document.getElementById("textakhir").innerHTML = "I Love You &#10084;";
+    iloveu();siap();}
+  }
+ function ketikakhiri() {
+    if(k<tekok.length){
+      document.getElementById("tekok").innerHTML += tekok.charAt(k);
+      a++;
+      setTimeout(ketikakhiri,300);
+    }
+    if(k==tekok.length){
+    document.getElementById("tekok").innerHTML = "Nice Try &#10084;";
     iloveu();siap();}
   }
   async function siap() {
