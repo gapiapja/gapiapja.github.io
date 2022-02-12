@@ -52,7 +52,7 @@ function nonTo() {document.getElementById('tombo').style.display = "none";} func
  function ketikakhiri() {
     if(k<tekok.length){
       document.getElementById("tekok").innerHTML += tekok.charAt(k);
-      a++;
+      k++;
       setTimeout(ketikakhiri,300);
     }
     if(k==tekok.length){
