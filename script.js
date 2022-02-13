@@ -4,7 +4,7 @@
   function trm() {document.getElementById('trm').style.margin = "0";}
   function whs() {document.getElementById('whs').style.margin = "12px 12px 12px 0";} function nowhs() {document.getElementById('whs').style.margin = "0 0 0 -500%";}
   function iloveu() {if(a==textakhir.length){document.getElementById('sp1').style.display = "none";document.getElementById('sp2').style.display = "block";}}
-  function ilove() {if(k==tekok.length){document.getElementById('sp4').style.display = "none";document.getElementById('sp5').style.display = "block";}}
+  function ilove() {if(k==tekok.length){document.getElementById('sp1').style.display = "none";document.getElementById('sp2').style.display = "block";}}
   function fotoKt() {document.getElementById('ftKm').style.opacity = "0";document.getElementById('ftAk').style.opacity = "1";var e1 = document.getElementById('ftAk');e1.classList.add("lopdeg");}
   async function would() {var { isConfirmed: mine } = await swals.fire({title: `Would you be mine?`, confirmButtonText: 'Yes', cancelButtonText: 'No', allowOutsideClick: false, showCancelButton: true,
     });if(mine){kal3();document.getElementById('text').style.display = "none";document.getElementById('text2').style.display = "none";document.getElementById('kata3').style.display = "block";
