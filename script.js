@@ -50,7 +50,7 @@
       setTimeout(ketikakhir,300);
     }
     if(a==textakhir.length){
-    document.getElementById("textakhir").innerHTML = "I Love You &#10084;";
+    document.getElementById("textakhir").innerHTML = "Good Luck &#10084;";
     iloveu();siap();}
   }
  function ketek() {
