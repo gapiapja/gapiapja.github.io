@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinExcel - Pencatat Keuangan dengan AI</title>
+    <title>FanAI Learn - Pencatat Keuangan dengan AI yang Bisa Belajar</title>
     <style>
         :root {
             --primary: #4361ee;
@@ -141,6 +141,14 @@
             background-color: #5a6268;
         }
         
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e68900;
+        }
+        
         .table-container {
             overflow-x: auto;
             margin-top: 15px;
@@ -189,7 +197,22 @@
             border-radius: 12px;
             font-size: 0.75rem;
             background-color: #e9ecef;
+            cursor: pointer;
         }
+        
+        .category-makanan { background-color: #ffebee; color: #c62828; }
+        .category-transportasi { background-color: #e3f2fd; color: #1565c0; }
+        .category-belanja { background-color: #f3e5f5; color: #7b1fa2; }
+        .category-utilitas { background-color: #e8f5e8; color: #2e7d32; }
+        .category-hiburan { background-color: #fff3e0; color: #ef6c00; }
+        .category-kesehatan { background-color: #fce4ec; color: #ad1457; }
+        .category-pendidikan { background-color: #e0f2f1; color: #00695c; }
+        .category-tagihan { background-color: #fff8e1; color: #f57f17; }
+        .category-gaji { background-color: #e8f5e9; color: #2e7d32; }
+        .category-bonus { background-color: #f3e5f5; color: #7b1fa2; }
+        .category-investasi { background-color: #e0f7fa; color: #00838f; }
+        .category-hadiah { background-color: #fff3e0; color: #ef6c00; }
+        .category-lainnya { background-color: #f5f5f5; color: #424242; }
         
         .summary-cards {
             display: grid;
@@ -321,6 +344,115 @@
             flex: 1;
         }
         
+        .ai-detection {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+        
+        .learning-badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--warning);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--excel-border);
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--excel-green);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .category-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .category-option {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid var(--excel-border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .category-option:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .category-option.selected {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .ai-learning-stats {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -340,6 +472,10 @@
                 margin-top: 10px;
                 width: 100%;
             }
+            
+            .category-options {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
         }
         
         @media (max-width: 480px) {
@@ -357,11 +493,12 @@
     <div class="container">
         <header>
             <div>
-                <h1><span class="logo">📊</span> FinExcel</h1>
-                <p class="subtitle">Pencatat Keuangan dengan AI Kategorisasi - Tampilan Excel</p>
+                <h1><span class="logo">🧠</span> KilpAI Learn</h1>
+                <p class="subtitle">Pencatat Keuangan dengan AI yang Bisa Belajar</p>
             </div>
             <div class="header-actions">
                 <button id="export-btn">Ekspor ke CSV</button>
+                <button id="ai-stats-btn" class="btn-secondary">Status AI</button>
             </div>
         </header>
         
@@ -392,11 +529,15 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="description">Deskripsi Transaksi</label>
-                        <input type="text" id="description" placeholder="Contoh: Beli makan siang" required>
+                        <input type="text" id="description" placeholder="Contoh: Beli ice cream" required>
+                        <div class="ai-detection">
+                            AI akan belajar dari koreksi Anda
+                            <span class="learning-badge">BELAJAR</span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="amount">Jumlah (Rp)</label>
-                        <input type="number" id="amount" placeholder="Contoh: 50000" required>
+                        <input type="number" id="amount" placeholder="Contoh: 25000" required>
                     </div>
                 </div>
                 <div class="form-row">
@@ -408,14 +549,14 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="category">Kategori</label>
-                        <select id="category">
-                            <!-- Kategori akan diisi oleh JavaScript -->
-                        </select>
-                    </div>
-                    <div class="form-group">
                         <label for="date">Tanggal</label>
                         <input type="date" id="date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Kategori Terdeteksi</label>
+                    <div id="detected-category" class="transaction-category category-lainnya">
+                        Menunggu input deskripsi...
                     </div>
                 </div>
                 <button type="submit">Tambah Transaksi</button>
@@ -542,23 +683,264 @@
         </div>
     </div>
 
+    <!-- Modal untuk mengubah kategori -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Perbaiki Kategori</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            <p>AI mendeteksi: "<span id="modal-description"></span>"</p>
+            <p>Kategori saat ini: <span id="modal-current-category"></span></p>
+            
+            <div class="form-group">
+                <label>Pilih Kategori yang Benar:</label>
+                <div class="category-options" id="category-options">
+                    <!-- Opsi kategori akan diisi oleh JavaScript -->
+                </div>
+            </div>
+            
+            <div class="ai-learning-stats">
+                <strong>AI Learning:</strong> 
+                <span id="learning-stats">AI akan mengingat koreksi ini untuk masa depan</span>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="confirm-category-btn" class="btn-warning">Konfirmasi & Ajari AI</button>
+                <button id="cancel-category-btn" class="btn-secondary">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk status AI -->
+    <div class="modal" id="ai-stats-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Status Pembelajaran AI</div>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="ai-learning-stats">
+                <h4>Statistik Pembelajaran</h4>
+                <p>Total pembelajaran: <span id="total-learnings">0</span> kata</p>
+                <p>Akurasi AI: <span id="ai-accuracy">0%</span></p>
+                <p>Koreksi pengguna: <span id="user-corrections">0</span> kali</p>
+            </div>
+            
+            <div class="ai-learning-stats">
+                <h4>Kata yang Dipelajari</h4>
+                <div id="learned-words-list">
+                    <!-- Daftar kata yang dipelajari -->
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="reset-ai-btn" class="btn-danger">Reset AI</button>
+                <button id="close-stats-btn" class="btn-secondary">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Data transaksi
         let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         
-        // Kategori transaksi
-        const categories = {
-            income: ['Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Lainnya'],
-            expense: ['Makanan & Minuman', 'Transportasi', 'Belanja', 'Utilitas', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Lainnya']
+        // Sistem AI yang bisa belajar
+        const learningAI = {
+            // Pola kata kunci dasar untuk setiap kategori
+            basePatterns: {
+                // Pemasukan
+                'Gaji': ['gaji', 'upah', 'salary', 'income', 'penghasilan', 'honor', 'bayaran'],
+                'Bonus': ['bonus', 'tunjangan', 'insentif', 'komisi', 'premi'],
+                'Investasi': ['dividen', 'saham', 'investasi', 'return', 'bunga', 'deposito'],
+                'Hadiah': ['hadiah', 'kado', 'pemberian', 'hibah', 'sumbangan'],
+                
+                // Pengeluaran
+                'Makanan & Minuman': [
+                    'makan', 'minum', 'restoran', 'warung', 'kafe', 'kedai', 'warteg', 
+                    'rumah makan', 'makan siang', 'sarapan', 'makan malam', 'jajan',
+                    'kopi', 'snack', 'cemilan', 'bakso', 'sate', 'nasi goreng'
+                ],
+                'Transportasi': [
+                    'bensin', 'pertamax', 'pertalite', 'solar', 'spbu', 'transport', 
+                    'gojek', 'grab', 'ojol', 'angkot', 'bus', 'kereta', 'tiket', 
+                    'taksi', 'parkir', 'tol', 'ojek'
+                ],
+                'Belanja': [
+                    'belanja', 'shopping', 'market', 'supermarket', 'mall', 'swalayan',
+                    'pasar', 'tokopedia', 'shopee', 'lazada', 'online shop', 'baju',
+                    'celana', 'sepatu', 'elektronik', 'handphone', 'laptop'
+                ],
+                'Utilitas': [
+                    'listrik', 'pln', 'air', 'pdam', 'internet', 'wifi', 'pulsa', 'kuota',
+                    'telepon', 'gas', 'langganan', 'netflix', 'spotify', 'youtube premium'
+                ],
+                'Hiburan': [
+                    'nonton', 'bioskop', 'film', 'game', 'hiburan', 'konser', 'hobi',
+                    'rekreasi', 'wisata', 'liburan', 'travel', 'tiket pesawat'
+                ],
+                'Kesehatan': [
+                    'dokter', 'rumah sakit', 'klinik', 'obat', 'apotik', 'kesehatan',
+                    'medical', 'check up', 'vitamin', 'suplemen', 'asuransi'
+                ],
+                'Pendidikan': [
+                    'sekolah', 'kuliah', 'kursus', 'buku', 'pendidikan', 'tuition',
+                    'biaya sekolah', 'spp', 'uang pangkal', 'seminar', 'workshop'
+                ],
+                'Tagihan': [
+                    'tagihan', 'bill', 'kartu kredit', 'credit card', 'cicilan', 'angsuran',
+                    'leasing', 'kpr', 'pinjaman', 'utang', 'bayar hutang'
+                ]
+            },
+            
+            // Data pembelajaran (disimpan di localStorage)
+            learnedPatterns: JSON.parse(localStorage.getItem('aiLearnedPatterns')) || {},
+            learningStats: JSON.parse(localStorage.getItem('aiLearningStats')) || {
+                totalLearnings: 0,
+                userCorrections: 0,
+                correctPredictions: 0
+            },
+            
+            // Fungsi untuk mendapatkan semua pola (base + learned)
+            getAllPatterns() {
+                const allPatterns = JSON.parse(JSON.stringify(this.basePatterns));
+                
+                // Tambahkan pola yang dipelajari
+                for (const [category, words] of Object.entries(this.learnedPatterns)) {
+                    if (!allPatterns[category]) {
+                        allPatterns[category] = [];
+                    }
+                    allPatterns[category].push(...words);
+                }
+                
+                return allPatterns;
+            },
+            
+            // Fungsi untuk mendeteksi kategori berdasarkan deskripsi
+            detectCategory(description, type) {
+                const desc = description.toLowerCase();
+                const allPatterns = this.getAllPatterns();
+                
+                // Jika pemasukan, gunakan kategori pemasukan
+                if (type === 'income') {
+                    for (const [category, keywords] of Object.entries(allPatterns)) {
+                        if (['Gaji', 'Bonus', 'Investasi', 'Hadiah'].includes(category)) {
+                            if (keywords.some(keyword => desc.includes(keyword))) {
+                                this.learningStats.correctPredictions++;
+                                this.saveLearningStats();
+                                return category;
+                            }
+                        }
+                    }
+                    return 'Pendapatan Lainnya';
+                }
+                
+                // Jika pengeluaran, gunakan kategori pengeluaran
+                if (type === 'expense') {
+                    for (const [category, keywords] of Object.entries(allPatterns)) {
+                        if (!['Gaji', 'Bonus', 'Investasi', 'Hadiah'].includes(category)) {
+                            if (keywords.some(keyword => desc.includes(keyword))) {
+                                this.learningStats.correctPredictions++;
+                                this.saveLearningStats();
+                                return category;
+                            }
+                        }
+                    }
+                    return 'Pengeluaran Lainnya';
+                }
+                
+                return 'Lainnya';
+            },
+            
+            // Fungsi untuk belajar dari koreksi pengguna
+            learnFromCorrection(description, correctCategory) {
+                const words = description.toLowerCase().split(/\s+/);
+                
+                // Filter kata-kata yang signifikan (bukan kata sambung, dll)
+                const significantWords = words.filter(word => 
+                    word.length > 2 && 
+                    !['di', 'ke', 'dari', 'dan', 'atau', 'yang', 'untuk', 'pada'].includes(word)
+                );
+                
+                // Tambahkan kata-kata ke pola yang dipelajari
+                if (!this.learnedPatterns[correctCategory]) {
+                    this.learnedPatterns[correctCategory] = [];
+                }
+                
+                significantWords.forEach(word => {
+                    if (!this.learnedPatterns[correctCategory].includes(word)) {
+                        this.learnedPatterns[correctCategory].push(word);
+                        this.learningStats.totalLearnings++;
+                    }
+                });
+                
+                this.learningStats.userCorrections++;
+                this.saveLearnedPatterns();
+                this.saveLearningStats();
+                
+                return significantWords;
+            },
+            
+            // Fungsi untuk mendapatkan kelas CSS berdasarkan kategori
+            getCategoryClass(category) {
+                const classMap = {
+                    'Gaji': 'category-gaji',
+                    'Bonus': 'category-bonus',
+                    'Investasi': 'category-investasi',
+                    'Hadiah': 'category-hadiah',
+                    'Pendapatan Lainnya': 'category-lainnya',
+                    'Makanan & Minuman': 'category-makanan',
+                    'Transportasi': 'category-transportasi',
+                    'Belanja': 'category-belanja',
+                    'Utilitas': 'category-utilitas',
+                    'Hiburan': 'category-hiburan',
+                    'Kesehatan': 'category-kesehatan',
+                    'Pendidikan': 'category-pendidikan',
+                    'Tagihan': 'category-tagihan',
+                    'Pengeluaran Lainnya': 'category-lainnya'
+                };
+                
+                return classMap[category] || 'category-lainnya';
+            },
+            
+            // Fungsi untuk menyimpan pola yang dipelajari
+            saveLearnedPatterns() {
+                localStorage.setItem('aiLearnedPatterns', JSON.stringify(this.learnedPatterns));
+            },
+            
+            // Fungsi untuk menyimpan statistik pembelajaran
+            saveLearningStats() {
+                localStorage.setItem('aiLearningStats', JSON.stringify(this.learningStats));
+            },
+            
+            // Fungsi untuk mereset AI
+            resetAI() {
+                this.learnedPatterns = {};
+                this.learningStats = {
+                    totalLearnings: 0,
+                    userCorrections: 0,
+                    correctPredictions: 0
+                };
+                this.saveLearnedPatterns();
+                this.saveLearningStats();
+            },
+            
+            // Fungsi untuk menghitung akurasi AI
+            getAccuracy() {
+                const totalPredictions = this.learningStats.userCorrections + this.learningStats.correctPredictions;
+                if (totalPredictions === 0) return 0;
+                return Math.round((this.learningStats.correctPredictions / totalPredictions) * 100);
+            }
         };
+        
+        // Variabel untuk modal
+        let currentEditingTransaction = null;
         
         // Inisialisasi aplikasi
         document.addEventListener('DOMContentLoaded', function() {
             // Set tanggal hari ini sebagai default
-            document.getElementById('date').valueAsDate = new Date();
-            
-            // Isi opsi kategori
-            populateCategoryOptions();
+            const today = new Date();
+            document.getElementById('date').valueAsDate = today;
             
             // Isi opsi filter bulan dan tahun
             populateFilterOptions();
@@ -581,6 +963,10 @@
                 e.preventDefault();
                 addTransaction();
             });
+            
+            // Event listener untuk real-time category detection
+            document.getElementById('description').addEventListener('input', updateDetectedCategory);
+            document.getElementById('type').addEventListener('change', updateDetectedCategory);
             
             // Event listener untuk filter
             document.getElementById('filter-type').addEventListener('change', displayTransactions);
@@ -606,40 +992,61 @@
             
             // Event listener untuk ekspor
             document.getElementById('export-btn').addEventListener('click', exportToCSV);
+            
+            // Event listener untuk modal kategori
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('category-modal').style.display = 'none';
+                    document.getElementById('ai-stats-modal').style.display = 'none';
+                });
+            });
+            
+            document.getElementById('cancel-category-btn').addEventListener('click', function() {
+                document.getElementById('category-modal').style.display = 'none';
+            });
+            
+            document.getElementById('confirm-category-btn').addEventListener('click', confirmCategoryChange);
+            
+            // Event listener untuk status AI
+            document.getElementById('ai-stats-btn').addEventListener('click', showAIStats);
+            document.getElementById('close-stats-btn').addEventListener('click', function() {
+                document.getElementById('ai-stats-modal').style.display = 'none';
+            });
+            document.getElementById('reset-ai-btn').addEventListener('click', resetAI);
+            
+            // Event listener untuk klik di luar modal
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
         });
         
-        // Fungsi untuk mengisi opsi kategori
-        function populateCategoryOptions() {
-            const categorySelect = document.getElementById('category');
-            categorySelect.innerHTML = '';
-            
-            // Tambahkan opsi kategori berdasarkan jenis transaksi
+        // Fungsi untuk memperbarui kategori yang terdeteksi
+        function updateDetectedCategory() {
+            const description = document.getElementById('description').value;
             const type = document.getElementById('type').value;
-            categories[type].forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                categorySelect.appendChild(option);
-            });
             
-            // Isi juga filter kategori
-            const filterCategory = document.getElementById('filter-category');
-            filterCategory.innerHTML = '<option value="all">Semua Kategori</option>';
+            const categoryElement = document.getElementById('detected-category');
             
-            // Gabungkan semua kategori
-            const allCategories = [...categories.income, ...categories.expense];
-            allCategories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category;
-                option.textContent = category;
-                filterCategory.appendChild(option);
-            });
+            if (description.trim() === '') {
+                categoryElement.textContent = 'Menunggu input deskripsi...';
+                categoryElement.className = 'transaction-category category-lainnya';
+                return;
+            }
+            
+            const detectedCategory = learningAI.detectCategory(description, type);
+            const categoryClass = learningAI.getCategoryClass(detectedCategory);
+            
+            categoryElement.textContent = detectedCategory;
+            categoryElement.className = `transaction-category ${categoryClass}`;
         }
         
         // Fungsi untuk mengisi opsi filter
         function populateFilterOptions() {
             const monthSelect = document.getElementById('filter-month');
             const yearSelect = document.getElementById('filter-year');
+            const categorySelect = document.getElementById('filter-category');
             
             // Isi opsi bulan
             const months = [
@@ -684,6 +1091,20 @@
                 }
                 yearSelect.appendChild(option);
             });
+            
+            // Isi opsi kategori
+            const allCategories = [
+                'Semua Kategori', 'Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Pendapatan Lainnya',
+                'Makanan & Minuman', 'Transportasi', 'Belanja', 'Utilitas', 'Hiburan', 
+                'Kesehatan', 'Pendidikan', 'Tagihan', 'Pengeluaran Lainnya'
+            ];
+            
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category === 'Semua Kategori' ? 'all' : category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
         }
         
         // Fungsi untuk menambah transaksi
@@ -691,8 +1112,10 @@
             const description = document.getElementById('description').value;
             const amount = parseFloat(document.getElementById('amount').value);
             const type = document.getElementById('type').value;
-            const category = document.getElementById('category').value;
             const date = document.getElementById('date').value;
+            
+            // Deteksi kategori menggunakan AI
+            const category = learningAI.detectCategory(description, type);
             
             // Buat objek transaksi
             const transaction = {
@@ -713,7 +1136,7 @@
             // Reset form
             document.getElementById('transaction-form').reset();
             document.getElementById('date').valueAsDate = new Date();
-            populateCategoryOptions();
+            updateDetectedCategory();
             
             // Perbarui tampilan
             displayTransactions();
@@ -773,11 +1196,17 @@
                 
                 const formattedDate = new Date(transaction.date).toLocaleDateString('id-ID');
                 const formattedAmount = formatCurrency(transaction.amount);
+                const categoryClass = learningAI.getCategoryClass(transaction.category);
                 
                 row.innerHTML = `
                     <td>${formattedDate}</td>
                     <td>${transaction.description}</td>
-                    <td><span class="transaction-category">${transaction.category}</span></td>
+                    <td>
+                        <span class="transaction-category ${categoryClass}" 
+                              onclick="openCategoryModal(${transaction.id})">
+                            ${transaction.category}
+                        </span>
+                    </td>
                     <td>${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
                     <td class="${transaction.type}">${transaction.type === 'income' ? '+' : '-'} ${formattedAmount}</td>
                     <td>
@@ -787,6 +1216,86 @@
                 
                 tableBody.appendChild(row);
             });
+        }
+        
+        // Fungsi untuk membuka modal kategori
+        function openCategoryModal(transactionId) {
+            currentEditingTransaction = transactions.find(t => t.id === transactionId);
+            
+            if (!currentEditingTransaction) return;
+            
+            // Isi data modal
+            document.getElementById('modal-description').textContent = currentEditingTransaction.description;
+            document.getElementById('modal-current-category').textContent = currentEditingTransaction.category;
+            
+            // Isi opsi kategori
+            const categoryOptions = document.getElementById('category-options');
+            categoryOptions.innerHTML = '';
+            
+            const categories = currentEditingTransaction.type === 'income' ? 
+                ['Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Pendapatan Lainnya'] :
+                ['Makanan & Minuman', 'Transportasi', 'Belanja', 'Utilitas', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Pengeluaran Lainnya'];
+            
+            categories.forEach(category => {
+                const option = document.createElement('div');
+                option.className = `category-option ${category === currentEditingTransaction.category ? 'selected' : ''}`;
+                option.textContent = category;
+                option.dataset.category = category;
+                option.addEventListener('click', function() {
+                    // Hapus selected dari semua opsi
+                    document.querySelectorAll('.category-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    // Tambah selected ke opsi yang diklik
+                    this.classList.add('selected');
+                });
+                categoryOptions.appendChild(option);
+            });
+            
+            // Tampilkan modal
+            document.getElementById('category-modal').style.display = 'flex';
+        }
+        
+        // Fungsi untuk mengonfirmasi perubahan kategori
+        function confirmCategoryChange() {
+            if (!currentEditingTransaction) return;
+            
+            const selectedOption = document.querySelector('.category-option.selected');
+            if (!selectedOption) return;
+            
+            const newCategory = selectedOption.dataset.category;
+            const oldCategory = currentEditingTransaction.category;
+            
+            // Update kategori transaksi
+            currentEditingTransaction.category = newCategory;
+            
+            // Ajari AI dengan koreksi ini
+            const learnedWords = learningAI.learnFromCorrection(
+                currentEditingTransaction.description, 
+                newCategory
+            );
+            
+            // Tampilkan statistik pembelajaran
+            document.getElementById('learning-stats').textContent = 
+                `AI telah mempelajari kata: "${learnedWords.join(', ')}" untuk kategori ${newCategory}`;
+            
+            // Simpan perubahan
+            saveTransactions();
+            
+            // Perbarui tampilan
+            displayTransactions();
+            updateSummary();
+            displayDailySummary();
+            displayMonthlySummary();
+            generateAiInsight();
+            
+            // Tutup modal
+            document.getElementById('category-modal').style.display = 'none';
+            
+            // Tampilkan pesan sukses
+            setTimeout(() => {
+                alert(`Kategori berhasil diubah dari "${oldCategory}" menjadi "${newCategory}". AI telah belajar dari koreksi ini!`);
+            }, 100);
         }
         
         // Fungsi untuk menghapus transaksi
@@ -968,4 +1477,234 @@
                 
                 row.innerHTML = `
                     <td>${month.monthName}</td>
-                   
+                    <td class="income">${formattedIncome}</td>
+                    <td class="expense">${formattedExpense}</td>
+                    <td class="${month.balance >= 0 ? 'income' : 'expense'}">${formattedBalance}</td>
+                    <td class="${month.dailyAverage >= 0 ? 'income' : 'expense'}">${formattedAverage}</td>
+                    <td>${month.count}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Fungsi untuk menghasilkan insight AI
+        function generateAiInsight() {
+            const insightElement = document.getElementById('ai-insight-text');
+            const categoryChart = document.getElementById('category-chart');
+            const trendChart = document.getElementById('trend-chart');
+            
+            if (transactions.length === 0) {
+                insightElement.textContent = 'AI akan menganalisis pola pengeluaran Anda dan memberikan saran berdasarkan kategori.';
+                categoryChart.innerHTML = '<p>Belum ada data untuk dianalisis.</p>';
+                trendChart.innerHTML = '<p>Belum ada data untuk dianalisis.</p>';
+                return;
+            }
+            
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            // Hitung pengeluaran per kategori (bulan ini)
+            const expensesByCategory = {};
+            transactions
+                .filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return t.type === 'expense' && 
+                           transactionDate.getMonth() === currentMonth && 
+                           transactionDate.getFullYear() === currentYear;
+                })
+                .forEach(t => {
+                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+                });
+            
+            // Tampilkan chart kategori
+            categoryChart.innerHTML = '';
+            const totalExpenses = Object.values(expensesByCategory).reduce((sum, amount) => sum + amount, 0);
+            
+            Object.entries(expensesByCategory).forEach(([category, amount]) => {
+                const percentage = totalExpenses > 0 ? (amount / totalExpenses * 100).toFixed(1) : 0;
+                const categoryClass = learningAI.getCategoryClass(category);
+                
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.innerHTML = `
+                    <div style="flex: 1;">
+                        <div><span class="transaction-category ${categoryClass}">${category}</span></div>
+                        <div class="category-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div>${formatCurrency(amount)} (${percentage}%)</div>
+                `;
+                
+                categoryChart.appendChild(categoryItem);
+            });
+            
+            // Hitung trend 6 bulan terakhir
+            const monthlyTrend = {};
+            const monthNames = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(currentYear, currentMonth - i, 1);
+                const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                const monthName = date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+                
+                monthNames.push(monthName);
+                monthlyTrend[monthYear] = 0;
+            }
+            
+            transactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    const date = new Date(t.date);
+                    const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                    
+                    if (monthlyTrend.hasOwnProperty(monthYear)) {
+                        monthlyTrend[monthYear] += t.amount;
+                    }
+                });
+            
+            // Tampilkan chart trend
+            trendChart.innerHTML = '';
+            const trendValues = Object.values(monthlyTrend);
+            const maxTrend = Math.max(...trendValues);
+            
+            trendValues.forEach((value, index) => {
+                const percentage = maxTrend > 0 ? (value / maxTrend * 100) : 0;
+                
+                const trendItem = document.createElement('div');
+                trendItem.className = 'category-item';
+                trendItem.innerHTML = `
+                    <div style="flex: 0 0 100px;">${monthNames[index]}</div>
+                    <div style="flex: 1;">
+                        <div class="category-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div>${formatCurrency(value)}</div>
+                `;
+                
+                trendChart.appendChild(trendItem);
+            });
+            
+            // Generate insight berdasarkan data
+            let insight = '';
+            
+            if (totalExpenses === 0) {
+                insight = 'Anda belum memiliki pengeluaran bulan ini. Pertahankan kebiasaan baik ini!';
+            } else {
+                const largestCategory = Object.entries(expensesByCategory).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+                const largestAmount = expensesByCategory[largestCategory];
+                
+                insight = `Pengeluaran terbesar Anda bulan ini adalah untuk ${largestCategory} sebesar ${formatCurrency(largestAmount)}. `;
+                
+                // Berikan saran berdasarkan kategori terbesar
+                if (largestCategory === 'Makanan & Minuman') {
+                    insight += 'Pertimbangkan untuk memasak sendiri di rumah untuk menghemat pengeluaran makanan.';
+                } else if (largestCategory === 'Transportasi') {
+                    insight += 'Coba gunakan transportasi umum atau carpooling untuk mengurangi biaya transportasi.';
+                } else if (largestCategory === 'Belanja') {
+                    insight += 'Buat daftar belanja dan patuhi untuk menghindari pembelian impulsif.';
+                } else if (largestCategory === 'Hiburan') {
+                    insight += 'Cari alternatif hiburan gratis atau murah seperti taman atau perpustakaan.';
+                } else {
+                    insight += 'Pertimbangkan untuk mengevaluasi pengeluaran ini dan mencari cara untuk mengoptimalkannya.';
+                }
+                
+                // Analisis tren
+                const lastMonth = new Date(currentYear, currentMonth - 1, 1);
+                const lastMonthYear = `${lastMonth.getFullYear()}-${(lastMonth.getMonth() + 1).toString().padStart(2, '0')}`;
+                const lastMonthExpense = monthlyTrend[lastMonthYear] || 0;
+                
+                if (lastMonthExpense > 0) {
+                    const change = ((totalExpenses - lastMonthExpense) / lastMonthExpense * 100).toFixed(1);
+                    
+                    if (change > 10) {
+                        insight += ` Pengeluaran bulan ini meningkat ${change}% dibanding bulan lalu. Perhatikan pengeluaran Anda.`;
+                    } else if (change < -10) {
+                        insight += ` Pengeluaran bulan ini turun ${Math.abs(change)}% dibanding bulan lalu. Bagus!`;
+                    } else {
+                        insight += ` Pengeluaran bulan ini stabil dibanding bulan lalu.`;
+                    }
+                }
+            }
+            
+            insightElement.textContent = insight;
+        }
+        
+        // Fungsi untuk menampilkan status AI
+        function showAIStats() {
+            document.getElementById('total-learnings').textContent = learningAI.learningStats.totalLearnings;
+            document.getElementById('user-corrections').textContent = learningAI.learningStats.userCorrections;
+            document.getElementById('ai-accuracy').textContent = learningAI.getAccuracy() + '%';
+            
+            // Tampilkan kata yang dipelajari
+            const learnedWordsList = document.getElementById('learned-words-list');
+            learnedWordsList.innerHTML = '';
+            
+            if (Object.keys(learningAI.learnedPatterns).length === 0) {
+                learnedWordsList.innerHTML = '<p>AI belum mempelajari kata apapun.</p>';
+            } else {
+                for (const [category, words] of Object.entries(learningAI.learnedPatterns)) {
+                    const categoryItem = document.createElement('div');
+                    categoryItem.innerHTML = `<strong>${category}:</strong> ${words.join(', ')}`;
+                    learnedWordsList.appendChild(categoryItem);
+                }
+            }
+            
+            document.getElementById('ai-stats-modal').style.display = 'flex';
+        }
+        
+        // Fungsi untuk mereset AI
+        function resetAI() {
+            if (confirm('Apakah Anda yakin ingin mereset AI? Semua pembelajaran akan dihapus.')) {
+                learningAI.resetAI();
+                showAIStats();
+                displayTransactions(); // Refresh tampilan untuk memperbarui kategori
+            }
+        }
+        
+        // Fungsi untuk menyimpan transaksi ke localStorage
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+        
+        // Fungsi untuk memformat mata uang
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
+        
+        // Fungsi untuk ekspor ke CSV
+        function exportToCSV() {
+            if (transactions.length === 0) {
+                alert('Tidak ada data untuk diekspor.');
+                return;
+            }
+            
+            // Header CSV
+            let csv = 'Tanggal,Deskripsi,Kategori,Jenis,Jumlah\n';
+            
+            // Data transaksi
+            transactions.forEach(transaction => {
+                const formattedDate = new Date(transaction.date).toLocaleDateString('id-ID');
+                const type = transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+                const amount = transaction.amount;
+                
+                csv += `"${formattedDate}","${transaction.description}","${transaction.category}","${type}","${amount}"\n`;
+            });
+            
+            // Buat blob dan unduh
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `laporan-keuangan-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
