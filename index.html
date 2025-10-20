@@ -3,546 +3,569 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Bisnis</title>
+    <title>FinTrack - Pencatat Keuangan dengan AI</title>
     <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            font-family: 'Arial', sans-serif;
+            background-color: #f5f7fb;
+            color: var(--dark);
             line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
         }
-
+        
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 20px;
         }
-
-        /* Header */
+        
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 1rem 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
-        nav {
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d1145a;
+        }
+        
+        .transaction-list {
+            margin-top: 20px;
+        }
+        
+        .transaction-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
         }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
-            color: white;
+        
+        .transaction-item:last-child {
+            border-bottom: none;
         }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
+        
+        .transaction-info {
+            flex: 1;
         }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: #ffd700;
-        }
-
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 120px 0 80px;
-            text-align: center;
-            margin-top: 70px;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            animation: fadeInUp 1s ease;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            animation: fadeInUp 1s ease 0.2s both;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: #ffd700;
-            color: #333;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: fadeInUp 1s ease 0.4s both;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-        }
-
-        /* Sections */
-        section {
-            padding: 80px 0;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            color: #333;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 3px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        /* About Section */
-        .about-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        .about-text {
+        
+        .transaction-amount {
+            font-weight: 600;
             font-size: 1.1rem;
-            line-height: 1.8;
         }
-
-        .about-image {
+        
+        .income {
+            color: #28a745;
+        }
+        
+        .expense {
+            color: var(--danger);
+        }
+        
+        .transaction-category {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background-color: #e9ecef;
+            margin-top: 5px;
+        }
+        
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .summary-item {
             text-align: center;
-        }
-
-        .about-image img {
-            width: 100%;
-            max-width: 400px;
+            padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        /* Services Section */
-        .services {
+            flex: 1;
+            margin: 0 10px;
             background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+        
+        .summary-item h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
         }
-
-        .service-card {
-            background: white;
-            padding: 2rem;
+        
+        .balance-positive {
+            color: #28a745;
+        }
+        
+        .balance-negative {
+            color: var(--danger);
+        }
+        
+        .ai-insight {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            color: white;
+            padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
         }
-
-        .service-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-        }
-
-        .service-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #667eea;
-        }
-
-        .service-card h3 {
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        /* Team Section */
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .team-member {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .team-member:hover {
-            transform: translateY(-5px);
-        }
-
-        .team-photo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0 auto 1rem;
+        
+        .ai-insight h3 {
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
         }
-
-        /* Contact Section */
-        .contact {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .contact-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-        }
-
-        .contact-info h3 {
-            margin-bottom: 1rem;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .contact-item i {
+        
+        .ai-icon {
+            margin-right: 10px;
             font-size: 1.2rem;
-            margin-right: 1rem;
-            width: 20px;
         }
-
-        .contact-form {
-            background: rgba(255,255,255,0.1);
-            padding: 2rem;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
+        
+        .category-chart {
+            margin-top: 20px;
         }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 0.8rem;
-            border: none;
+        
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
             border-radius: 5px;
-            background: rgba(255,255,255,0.9);
-            color: #333;
         }
-
-        .form-group textarea {
-            height: 120px;
-            resize: vertical;
+        
+        .category-bar {
+            height: 10px;
+            background: var(--primary);
+            border-radius: 5px;
+            margin-top: 5px;
         }
-
-        .submit-btn {
-            background: #ffd700;
-            color: #333;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        /* Footer */
-        footer {
-            background: #333;
-            color: white;
-            text-align: center;
-            padding: 2rem 0;
-        }
-
-        .social-links {
-            margin-top: 1rem;
-        }
-
-        .social-links a {
-            color: white;
-            font-size: 1.5rem;
-            margin: 0 1rem;
-            transition: color 0.3s ease;
-        }
-
-        .social-links a:hover {
-            color: #ffd700;
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+        
+        @media (max-width: 600px) {
+            .summary {
+                flex-direction: column;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            
+            .summary-item {
+                margin: 5px 0;
             }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .about-content,
-            .contact-content {
-                grid-template-columns: 1fr;
-            }
-
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Smooth scrolling */
-        html {
-            scroll-behavior: smooth;
         }
     </style>
 </head>
 <body>
-    <header>
-        <nav class="container">
-            <a href="#" class="logo">Kreatif Digital</a>
-            <ul class="nav-links">
-                <li><a href="#home">Beranda</a></li>
-                <li><a href="#about">Tentang</a></li>
-                <li><a href="#services">Layanan</a></li>
-                <li><a href="#team">Tim</a></li>
-                <li><a href="#contact">Kontak</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <section id="home" class="hero">
-        <div class="container">
-            <h1>Solusi Digital Terdepan</h1>
-            <p>Kami membantu bisnis Anda berkembang dengan teknologi digital yang inovatif dan strategi pemasaran yang tepat sasaran</p>
-            <a href="#contact" class="cta-button">Mulai Konsultasi</a>
+    <div class="container">
+        <header>
+            <h1>FinTrack</h1>
+            <p class="subtitle">Pencatat Keuangan dengan AI Kategorisasi</p>
+        </header>
+        
+        <div class="summary">
+            <div class="summary-item">
+                <p>Saldo</p>
+                <h3 id="balance" class="balance-positive">Rp 0</h3>
+            </div>
+            <div class="summary-item">
+                <p>Pemasukan</p>
+                <h3 id="income-total">Rp 0</h3>
+            </div>
+            <div class="summary-item">
+                <p>Pengeluaran</p>
+                <h3 id="expense-total">Rp 0</h3>
+            </div>
         </div>
-    </section>
-
-    <section id="about">
-        <div class="container">
-            <h2 class="section-title">Tentang Kami</h2>
-            <div class="about-content">
-                <div class="about-text">
-                    <p>Tim ahli kami terdiri dari developer berpengalaman, desainer kreatif, dan digital marketer yang berpengalaman. Kami berkomitmen untuk memberikan solusi terbaik yang sesuai dengan kebutuhan dan budget klien.</p>
-                    <p>Visi kami adalah menjadi partner terpercaya dalam transformasi digital bisnis Indonesia, sementara misi kami adalah memberikan solusi teknologi yang inovatif, efektif, dan terjangkau.</p>
+        
+        <div class="card">
+            <h2>Tambah Transaksi</h2>
+            <form id="transaction-form">
+                <div class="form-group">
+                    <label for="description">Deskripsi</label>
+                    <input type="text" id="description" placeholder="Contoh: Beli makan siang" required>
                 </div>
-                <div class="about-image">
-                    <img src="https://via.placeholder.com/400x300/667eea/ffffff?text=Tim+Kreatif+Digital" alt="Tim Kreatif Digital">
+                <div class="form-group">
+                    <label for="amount">Jumlah (Rp)</label>
+                    <input type="number" id="amount" placeholder="Contoh: 50000" required>
+                </div>
+                <div class="form-group">
+                    <label for="type">Jenis Transaksi</label>
+                    <select id="type" required>
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date">Tanggal</label>
+                    <input type="date" id="date" required>
+                </div>
+                <button type="submit">Tambah Transaksi</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Riwayat Transaksi</h2>
+            <div class="transaction-list" id="transaction-list">
+                <!-- Transaksi akan ditampilkan di sini -->
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Analisis AI</h2>
+            <div class="ai-insight">
+                <h3><span class="ai-icon">🤖</span> Insight dari AI</h3>
+                <p id="ai-insight-text">AI akan menganalisis pola pengeluaran Anda dan memberikan saran berdasarkan kategori.</p>
+            </div>
+            
+            <div class="category-chart">
+                <h3>Pengeluaran per Kategori</h3>
+                <div id="category-chart">
+                    <!-- Chart kategori akan ditampilkan di sini -->
                 </div>
             </div>
         </div>
-    </section>
-
-    <section id="services" class="services">
-        <div class="container">
-            <h2 class="section-title">Layanan Kami</h2>
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">🌐</div>
-                    <h3>Web Development</h3>
-                    <p>Pembuatan website profesional, responsif, dan SEO-friendly yang sesuai dengan kebutuhan bisnis Anda</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">📱</div>
-                    <h3>Mobile App</h3>
-                    <p>Pengembangan aplikasi mobile Android dan iOS yang user-friendly dan berkualitas tinggi</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">📊</div>
-                    <h3>Digital Marketing</h3>
-                    <p>Strategi pemasaran digital yang efektif untuk meningkatkan brand awareness dan penjualan</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🎨</div>
-                    <h3>UI/UX Design</h3>
-                    <p>Desain antarmuka yang menarik dan pengalaman pengguna yang optimal untuk produk digital</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">☁️</div>
-                    <h3>Cloud Solutions</h3>
-                    <p>Solusi cloud computing untuk efisiensi operasional dan skalabilitas bisnis yang lebih baik</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">🔧</div>
-                    <h3>IT Consulting</h3>
-                    <p>Konsultasi IT profesional untuk optimasi sistem dan strategi teknologi bisnis Anda</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="team">
-        <div class="container">
-            <h2 class="section-title">Tim Kami</h2>
-            <div class="team-grid">
-                <div class="team-member">
-                    <div class="team-photo">AH</div>
-                    <h3>Gapiapja</h3>
-                    <p>CEO & Founder</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">Hubungi Kami</h2>
-            <div class="contact-content">
-                <div class="contact-info">
-                    <h3>Informasi Kontak</h3>
-                    <div class="contact-item">
-                        <i>📍</i>
-                        <span>Jl. Oto Iskandardinata 15113</span>
-                    </div>
-                    <div class="contact-item">
-                        <i>📞</i>
-                        <span>6282122619832</span>
-                    </div>
-                    <div class="contact-item">
-                        <i>📧</i>
-                        <span>gapiapjabot@gmail.com</span>
-                    </div>
-                    <div class="contact-item">
-                        <i>🌐</i>
-                        <span>shop.gapiapja.space</span>
-                    </div>
-                    <div class="contact-item">
-                        <i>⏰</i>
-                        <span>Senin - Jumat: 09:00 - 18:00</span>
-                    </div>
-                </div>
-                <div class="contact-form">
-                    <h3>Kirim Pesan</h3>
-                    <form>
-                        <div class="form-group">
-                            <label for="name">Nama</label>
-                            <input type="text" id="name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="subject">Subjek</label>
-                            <input type="text" id="subject" name="subject" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Pesan</label>
-                            <textarea id="message" name="message" required></textarea>
-                        </div>
-                        <button type="submit" class="submit-btn">Kirim Pesan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 Gapiapja Shop. All rights reserved.</p>
-            <div class="social-links">
-                <a href="#">📘</a>
-                <a href="#">📷</a>
-                <a href="#">🐦</a>
-                <a href="#">💼</a>
-            </div>
-        </div>
-    </footer>
+    </div>
 
     <script>
-        // Smooth scrolling untuk navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+        // Data transaksi
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        
+        // Inisialisasi aplikasi
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set tanggal hari ini sebagai default
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // Tampilkan transaksi
+            displayTransactions();
+            
+            // Update ringkasan
+            updateSummary();
+            
+            // Analisis AI
+            generateAiInsight();
+            
+            // Event listener untuk form
+            document.getElementById('transaction-form').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
+                addTransaction();
             });
         });
-
-        // Form submission handler
-        document.querySelector('.contact-form form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Terima kasih! Pesan Anda telah dikirim. Kami akan segera menghubungi Anda.');
-            this.reset();
-        });
-
-        // Header scroll effect
-        window.addEventListener('scroll', function() {
-            const header = document.querySelector('header');
-            if (window.scrollY > 100) {
-                header.style.background = 'rgba(102, 126, 234, 0.95)';
-                header.style.backdropFilter = 'blur(10px)';
+        
+        // Fungsi untuk menambah transaksi
+        function addTransaction() {
+            const description = document.getElementById('description').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const type = document.getElementById('type').value;
+            const date = document.getElementById('date').value;
+            
+            // Deteksi kategori menggunakan AI sederhana
+            const category = detectCategory(description, amount, type);
+            
+            // Buat objek transaksi
+            const transaction = {
+                id: Date.now(),
+                description,
+                amount,
+                type,
+                date,
+                category
+            };
+            
+            // Tambahkan ke array transaksi
+            transactions.push(transaction);
+            
+            // Simpan ke localStorage
+            saveTransactions();
+            
+            // Reset form
+            document.getElementById('transaction-form').reset();
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // Perbarui tampilan
+            displayTransactions();
+            updateSummary();
+            generateAiInsight();
+        }
+        
+        // Fungsi untuk mendeteksi kategori menggunakan AI sederhana
+        function detectCategory(description, amount, type) {
+            if (type === 'income') return 'Pendapatan';
+            
+            const desc = description.toLowerCase();
+            
+            // Deteksi berdasarkan kata kunci dalam deskripsi
+            if (desc.includes('makan') || desc.includes('restoran') || desc.includes('warung') || desc.includes('kafe')) {
+                return 'Makanan & Minuman';
+            } else if (desc.includes('bensin') || desc.includes('transport') || desc.includes('gojek') || desc.includes('grab') || desc.includes('angkot')) {
+                return 'Transportasi';
+            } else if (desc.includes('belanja') || desc.includes('market') || desc.includes('supermarket') || desc.includes('mall')) {
+                return 'Belanja';
+            } else if (desc.includes('listrik') || desc.includes('air') || desc.includes('internet') || desc.includes('pulsa')) {
+                return 'Utilitas';
+            } else if (desc.includes('hiburan') || desc.includes('nonton') || desc.includes('film') || desc.includes('game')) {
+                return 'Hiburan';
+            } else if (desc.includes('kesehatan') || desc.includes('dokter') || desc.includes('obat') || desc.includes('rumah sakit')) {
+                return 'Kesehatan';
+            } else if (desc.includes('pendidikan') || desc.includes('buku') || desc.includes('kursus')) {
+                return 'Pendidikan';
             } else {
-                header.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                header.style.backdropFilter = 'none';
+                return 'Lainnya';
             }
-        });
+        }
+        
+        // Fungsi untuk menampilkan transaksi
+        function displayTransactions() {
+            const transactionList = document.getElementById('transaction-list');
+            transactionList.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                transactionList.innerHTML = '<p style="text-align: center; padding: 20px;">Belum ada transaksi</p>';
+                return;
+            }
+            
+            // Urutkan transaksi berdasarkan tanggal (terbaru pertama)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedTransactions.forEach(transaction => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                
+                const formattedDate = new Date(transaction.date).toLocaleDateString('id-ID');
+                const formattedAmount = formatCurrency(transaction.amount);
+                
+                transactionItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-description">${transaction.description}</div>
+                        <div class="transaction-category">${transaction.category}</div>
+                        <div class="transaction-date">${formattedDate}</div>
+                    </div>
+                    <div class="transaction-amount ${transaction.type}">
+                        ${transaction.type === 'income' ? '+' : '-'} ${formattedAmount}
+                    </div>
+                    <button class="btn-danger" onclick="deleteTransaction(${transaction.id})">Hapus</button>
+                `;
+                
+                transactionList.appendChild(transactionItem);
+            });
+        }
+        
+        // Fungsi untuk menghapus transaksi
+        function deleteTransaction(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+                transactions = transactions.filter(transaction => transaction.id !== id);
+                saveTransactions();
+                displayTransactions();
+                updateSummary();
+                generateAiInsight();
+            }
+        }
+        
+        // Fungsi untuk memperbarui ringkasan
+        function updateSummary() {
+            const incomeTotal = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const expenseTotal = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const balance = incomeTotal - expenseTotal;
+            
+            document.getElementById('income-total').textContent = formatCurrency(incomeTotal);
+            document.getElementById('expense-total').textContent = formatCurrency(expenseTotal);
+            document.getElementById('balance').textContent = formatCurrency(balance);
+            
+            // Ubah warna saldo berdasarkan nilai
+            const balanceElement = document.getElementById('balance');
+            balanceElement.className = balance >= 0 ? 'balance-positive' : 'balance-negative';
+        }
+        
+        // Fungsi untuk menghasilkan insight AI
+        function generateAiInsight() {
+            const insightElement = document.getElementById('ai-insight-text');
+            const categoryChart = document.getElementById('category-chart');
+            
+            if (transactions.length === 0) {
+                insightElement.textContent = 'AI akan menganalisis pola pengeluaran Anda dan memberikan saran berdasarkan kategori.';
+                categoryChart.innerHTML = '<p>Belum ada data untuk dianalisis.</p>';
+                return;
+            }
+            
+            // Hitung pengeluaran per kategori
+            const expensesByCategory = {};
+            transactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
+                });
+            
+            // Tampilkan chart kategori
+            categoryChart.innerHTML = '';
+            const totalExpenses = Object.values(expensesByCategory).reduce((sum, amount) => sum + amount, 0);
+            
+            Object.entries(expensesByCategory).forEach(([category, amount]) => {
+                const percentage = totalExpenses > 0 ? (amount / totalExpenses * 100).toFixed(1) : 0;
+                
+                const categoryItem = document.createElement('div');
+                categoryItem.className = 'category-item';
+                categoryItem.innerHTML = `
+                    <div>
+                        <div>${category}</div>
+                        <div class="category-bar" style="width: ${percentage}%"></div>
+                    </div>
+                    <div>${formatCurrency(amount)} (${percentage}%)</div>
+                `;
+                
+                categoryChart.appendChild(categoryItem);
+            });
+            
+            // Generate insight berdasarkan data
+            let insight = '';
+            
+            if (totalExpenses === 0) {
+                insight = 'Anda belum memiliki pengeluaran. Pertahankan kebiasaan baik ini!';
+            } else {
+                const largestCategory = Object.entries(expensesByCategory).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+                const largestAmount = expensesByCategory[largestCategory];
+                
+                insight = `Pengeluaran terbesar Anda adalah untuk ${largestCategory} sebesar ${formatCurrency(largestAmount)}. `;
+                
+                // Berikan saran berdasarkan kategori terbesar
+                if (largestCategory === 'Makanan & Minuman') {
+                    insight += 'Pertimbangkan untuk memasak sendiri di rumah untuk menghemat pengeluaran makanan.';
+                } else if (largestCategory === 'Transportasi') {
+                    insight += 'Coba gunakan transportasi umum atau carpooling untuk mengurangi biaya transportasi.';
+                } else if (largestCategory === 'Belanja') {
+                    insight += 'Buat daftar belanja dan patuhi untuk menghindari pembelian impulsif.';
+                } else if (largestCategory === 'Hiburan') {
+                    insight += 'Cari alternatif hiburan gratis atau murah seperti taman atau perpustakaan.';
+                } else {
+                    insight += 'Pertimbangkan untuk mengevaluasi pengeluaran ini dan mencari cara untuk mengoptimalkannya.';
+                }
+                
+                // Analisis tren bulanan (sederhana)
+                const currentMonth = new Date().getMonth();
+                const currentYear = new Date().getFullYear();
+                
+                const thisMonthExpenses = transactions
+                    .filter(t => {
+                        const transactionDate = new Date(t.date);
+                        return t.type === 'expense' && 
+                               transactionDate.getMonth() === currentMonth && 
+                               transactionDate.getFullYear() === currentYear;
+                    })
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                const lastMonthExpenses = transactions
+                    .filter(t => {
+                        const transactionDate = new Date(t.date);
+                        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                        
+                        return t.type === 'expense' && 
+                               transactionDate.getMonth() === lastMonth && 
+                               transactionDate.getFullYear() === lastMonthYear;
+                    })
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                if (lastMonthExpenses > 0) {
+                    const change = ((thisMonthExpenses - lastMonthExpenses) / lastMonthExpenses * 100).toFixed(1);
+                    
+                    if (change > 10) {
+                        insight += ` Pengeluaran bulan ini meningkat ${change}% dibanding bulan lalu. Perhatikan pengeluaran Anda.`;
+                    } else if (change < -10) {
+                        insight += ` Pengeluaran bulan ini turun ${Math.abs(change)}% dibanding bulan lalu. Bagus!`;
+                    }
+                }
+            }
+            
+            insightElement.textContent = insight;
+        }
+        
+        // Fungsi untuk menyimpan transaksi ke localStorage
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+        
+        // Fungsi untuk memformat mata uang
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(amount);
+        }
     </script>
 </body>
 </html>
