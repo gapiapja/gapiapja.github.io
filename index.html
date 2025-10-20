@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinTrack - Pencatat Keuangan dengan AI</title>
+    <title>FinExcel - Pencatat Keuangan dengan AI</title>
     <style>
         :root {
             --primary: #4361ee;
             --secondary: #3a0ca3;
             --success: #4cc9f0;
             --danger: #f72585;
+            --warning: #f8961e;
             --light: #f8f9fa;
             --dark: #212529;
             --gray: #6c757d;
+            --excel-green: #217346;
+            --excel-light: #f3f3f3;
+            --excel-border: #d0d0d0;
         }
         
         * {
@@ -29,37 +33,61 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
         
         header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
         
         h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            color: var(--excel-green);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            margin-right: 10px;
+            font-size: 1.5rem;
         }
         
         .subtitle {
-            font-size: 1rem;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            color: var(--gray);
         }
         
         .card {
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--excel-border);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--excel-border);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--excel-green);
         }
         
         .form-group {
@@ -70,30 +98,31 @@
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
+            font-size: 0.9rem;
         }
         
         input, select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
+            padding: 8px 10px;
+            border: 1px solid var(--excel-border);
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
         
         button {
-            background-color: var(--primary);
+            background-color: var(--excel-green);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             transition: background-color 0.3s;
         }
         
         button:hover {
-            background-color: var(--secondary);
+            background-color: #1a5c38;
         }
         
         .btn-danger {
@@ -104,82 +133,133 @@
             background-color: #d1145a;
         }
         
-        .transaction-list {
-            margin-top: 20px;
+        .btn-secondary {
+            background-color: var(--gray);
         }
         
-        .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+        .btn-secondary:hover {
+            background-color: #5a6268;
         }
         
-        .transaction-item:last-child {
-            border-bottom: none;
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
         }
         
-        .transaction-info {
-            flex: 1;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
         }
         
-        .transaction-amount {
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid var(--excel-border);
+        }
+        
+        th {
+            background-color: var(--excel-light);
             font-weight: 600;
-            font-size: 1.1rem;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f0f0f0;
         }
         
         .income {
             color: #28a745;
+            font-weight: 600;
         }
         
         .expense {
             color: var(--danger);
+            font-weight: 600;
         }
         
         .transaction-category {
             display: inline-block;
             padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
             background-color: #e9ecef;
-            margin-top: 5px;
         }
         
-        .summary {
-            display: flex;
-            justify-content: space-between;
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
         
-        .summary-item {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            flex: 1;
-            margin: 0 10px;
+        .summary-card {
             background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--excel-border);
         }
         
-        .summary-item h3 {
-            font-size: 1.8rem;
+        .summary-card h3 {
+            font-size: 1.5rem;
             margin-bottom: 5px;
         }
         
-        .balance-positive {
-            color: #28a745;
+        .summary-card.positive {
+            border-top: 4px solid #28a745;
         }
         
-        .balance-negative {
-            color: var(--danger);
+        .summary-card.negative {
+            border-top: 4px solid var(--danger);
+        }
+        
+        .summary-card.neutral {
+            border-top: 4px solid var(--gray);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--excel-border);
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-color: var(--excel-border);
+            border-bottom-color: white;
+            font-weight: 600;
+            color: var(--excel-green);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .ai-insight {
             background: linear-gradient(135deg, #4cc9f0, #4361ee);
             color: white;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 8px;
             margin-top: 20px;
         }
         
@@ -202,25 +282,73 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
-            padding: 10px;
+            padding: 8px;
             background: white;
-            border-radius: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--excel-border);
         }
         
         .category-bar {
-            height: 10px;
+            height: 8px;
             background: var(--primary);
-            border-radius: 5px;
+            border-radius: 4px;
             margin-top: 5px;
         }
         
-        @media (max-width: 600px) {
-            .summary {
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
                 flex-direction: column;
+                gap: 10px;
             }
             
-            .summary-item {
-                margin: 5px 0;
+            .summary-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .header-actions {
+                margin-top: 10px;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
             }
         }
     </style>
@@ -228,69 +356,187 @@
 <body>
     <div class="container">
         <header>
-            <h1>FinTrack</h1>
-            <p class="subtitle">Pencatat Keuangan dengan AI Kategorisasi</p>
+            <div>
+                <h1><span class="logo">📊</span> FinExcel</h1>
+                <p class="subtitle">Pencatat Keuangan dengan AI Kategorisasi - Tampilan Excel</p>
+            </div>
+            <div class="header-actions">
+                <button id="export-btn">Ekspor ke CSV</button>
+            </div>
         </header>
         
-        <div class="summary">
-            <div class="summary-item">
-                <p>Saldo</p>
-                <h3 id="balance" class="balance-positive">Rp 0</h3>
+        <div class="summary-cards">
+            <div class="summary-card positive">
+                <p>Saldo Saat Ini</p>
+                <h3 id="balance">Rp 0</h3>
             </div>
-            <div class="summary-item">
-                <p>Pemasukan</p>
-                <h3 id="income-total">Rp 0</h3>
+            <div class="summary-card positive">
+                <p>Pemasukan Bulan Ini</p>
+                <h3 id="income-month">Rp 0</h3>
             </div>
-            <div class="summary-item">
-                <p>Pengeluaran</p>
-                <h3 id="expense-total">Rp 0</h3>
+            <div class="summary-card negative">
+                <p>Pengeluaran Bulan Ini</p>
+                <h3 id="expense-month">Rp 0</h3>
+            </div>
+            <div class="summary-card neutral">
+                <p>Transaksi Hari Ini</p>
+                <h3 id="transactions-today">0</h3>
             </div>
         </div>
         
         <div class="card">
-            <h2>Tambah Transaksi</h2>
+            <div class="card-header">
+                <div class="card-title">Tambah Transaksi Baru</div>
+            </div>
             <form id="transaction-form">
-                <div class="form-group">
-                    <label for="description">Deskripsi</label>
-                    <input type="text" id="description" placeholder="Contoh: Beli makan siang" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="description">Deskripsi Transaksi</label>
+                        <input type="text" id="description" placeholder="Contoh: Beli makan siang" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Jumlah (Rp)</label>
+                        <input type="number" id="amount" placeholder="Contoh: 50000" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="amount">Jumlah (Rp)</label>
-                    <input type="number" id="amount" placeholder="Contoh: 50000" required>
-                </div>
-                <div class="form-group">
-                    <label for="type">Jenis Transaksi</label>
-                    <select id="type" required>
-                        <option value="income">Pemasukan</option>
-                        <option value="expense">Pengeluaran</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="date">Tanggal</label>
-                    <input type="date" id="date" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">Jenis Transaksi</label>
+                        <select id="type" required>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Kategori</label>
+                        <select id="category">
+                            <!-- Kategori akan diisi oleh JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Tanggal</label>
+                        <input type="date" id="date" required>
+                    </div>
                 </div>
                 <button type="submit">Tambah Transaksi</button>
             </form>
         </div>
         
         <div class="card">
-            <h2>Riwayat Transaksi</h2>
-            <div class="transaction-list" id="transaction-list">
-                <!-- Transaksi akan ditampilkan di sini -->
+            <div class="card-header">
+                <div class="card-title">Data Transaksi</div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="filter-type">Jenis</label>
+                        <select id="filter-type">
+                            <option value="all">Semua</option>
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-category">Kategori</label>
+                        <select id="filter-category">
+                            <option value="all">Semua Kategori</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-month">Bulan</label>
+                        <select id="filter-month">
+                            <!-- Opsi bulan akan diisi oleh JavaScript -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-year">Tahun</label>
+                        <select id="filter-year">
+                            <!-- Opsi tahun akan diisi oleh JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Deskripsi</th>
+                            <th>Kategori</th>
+                            <th>Jenis</th>
+                            <th>Jumlah</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-table-body">
+                        <!-- Data transaksi akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </div>
         
         <div class="card">
-            <h2>Analisis AI</h2>
-            <div class="ai-insight">
-                <h3><span class="ai-icon">🤖</span> Insight dari AI</h3>
-                <p id="ai-insight-text">AI akan menganalisis pola pengeluaran Anda dan memberikan saran berdasarkan kategori.</p>
+            <div class="tabs">
+                <div class="tab active" data-tab="daily">Ringkasan Harian</div>
+                <div class="tab" data-tab="monthly">Ringkasan Bulanan</div>
+                <div class="tab" data-tab="analysis">Analisis AI</div>
             </div>
             
-            <div class="category-chart">
-                <h3>Pengeluaran per Kategori</h3>
-                <div id="category-chart">
-                    <!-- Chart kategori akan ditampilkan di sini -->
+            <div class="tab-content active" id="daily-tab">
+                <div class="table-container">
+                    <table id="daily-summary-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Pemasukan</th>
+                                <th>Pengeluaran</th>
+                                <th>Saldo Harian</th>
+                                <th>Jumlah Transaksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="daily-summary-body">
+                            <!-- Ringkasan harian akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="monthly-tab">
+                <div class="table-container">
+                    <table id="monthly-summary-table">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Pemasukan</th>
+                                <th>Pengeluaran</th>
+                                <th>Saldo Bulanan</th>
+                                <th>Rata-rata Harian</th>
+                                <th>Transaksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-summary-body">
+                            <!-- Ringkasan bulanan akan diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="analysis-tab">
+                <div class="ai-insight">
+                    <h3><span class="ai-icon">🤖</span> Insight dari AI</h3>
+                    <p id="ai-insight-text">AI akan menganalisis pola pengeluaran Anda dan memberikan saran berdasarkan kategori.</p>
+                </div>
+                
+                <div class="category-chart">
+                    <h3>Pengeluaran per Kategori (Bulan Ini)</h3>
+                    <div id="category-chart">
+                        <!-- Chart kategori akan ditampilkan di sini -->
+                    </div>
+                </div>
+                
+                <div class="category-chart" style="margin-top: 20px;">
+                    <h3>Trend Pengeluaran (6 Bulan Terakhir)</h3>
+                    <div id="trend-chart">
+                        <!-- Chart trend akan ditampilkan di sini -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,16 +546,32 @@
         // Data transaksi
         let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
         
+        // Kategori transaksi
+        const categories = {
+            income: ['Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Lainnya'],
+            expense: ['Makanan & Minuman', 'Transportasi', 'Belanja', 'Utilitas', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Lainnya']
+        };
+        
         // Inisialisasi aplikasi
         document.addEventListener('DOMContentLoaded', function() {
             // Set tanggal hari ini sebagai default
             document.getElementById('date').valueAsDate = new Date();
+            
+            // Isi opsi kategori
+            populateCategoryOptions();
+            
+            // Isi opsi filter bulan dan tahun
+            populateFilterOptions();
             
             // Tampilkan transaksi
             displayTransactions();
             
             // Update ringkasan
             updateSummary();
+            
+            // Tampilkan ringkasan harian dan bulanan
+            displayDailySummary();
+            displayMonthlySummary();
             
             // Analisis AI
             generateAiInsight();
@@ -319,17 +581,118 @@
                 e.preventDefault();
                 addTransaction();
             });
+            
+            // Event listener untuk filter
+            document.getElementById('filter-type').addEventListener('change', displayTransactions);
+            document.getElementById('filter-category').addEventListener('change', displayTransactions);
+            document.getElementById('filter-month').addEventListener('change', displayTransactions);
+            document.getElementById('filter-year').addEventListener('change', displayTransactions);
+            
+            // Event listener untuk tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Hapus kelas active dari semua tab dan konten
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Tambah kelas active ke tab yang diklik
+                    this.classList.add('active');
+                    
+                    // Tampilkan konten yang sesuai
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Event listener untuk ekspor
+            document.getElementById('export-btn').addEventListener('click', exportToCSV);
         });
+        
+        // Fungsi untuk mengisi opsi kategori
+        function populateCategoryOptions() {
+            const categorySelect = document.getElementById('category');
+            categorySelect.innerHTML = '';
+            
+            // Tambahkan opsi kategori berdasarkan jenis transaksi
+            const type = document.getElementById('type').value;
+            categories[type].forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+            
+            // Isi juga filter kategori
+            const filterCategory = document.getElementById('filter-category');
+            filterCategory.innerHTML = '<option value="all">Semua Kategori</option>';
+            
+            // Gabungkan semua kategori
+            const allCategories = [...categories.income, ...categories.expense];
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                filterCategory.appendChild(option);
+            });
+        }
+        
+        // Fungsi untuk mengisi opsi filter
+        function populateFilterOptions() {
+            const monthSelect = document.getElementById('filter-month');
+            const yearSelect = document.getElementById('filter-year');
+            
+            // Isi opsi bulan
+            const months = [
+                'Semua Bulan', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            
+            months.forEach((month, index) => {
+                const option = document.createElement('option');
+                option.value = index === 0 ? 'all' : index;
+                option.textContent = month;
+                if (index === new Date().getMonth() + 1) {
+                    option.selected = true;
+                }
+                monthSelect.appendChild(option);
+            });
+            
+            // Isi opsi tahun (3 tahun terakhir dan tahun transaksi yang ada)
+            const currentYear = new Date().getFullYear();
+            const years = new Set();
+            
+            // Tambahkan tahun dari transaksi yang ada
+            transactions.forEach(transaction => {
+                const year = new Date(transaction.date).getFullYear();
+                years.add(year);
+            });
+            
+            // Tambahkan 3 tahun terakhir
+            for (let i = currentYear - 2; i <= currentYear + 1; i++) {
+                years.add(i);
+            }
+            
+            // Urutkan tahun
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
+            
+            sortedYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) {
+                    option.selected = true;
+                }
+                yearSelect.appendChild(option);
+            });
+        }
         
         // Fungsi untuk menambah transaksi
         function addTransaction() {
             const description = document.getElementById('description').value;
             const amount = parseFloat(document.getElementById('amount').value);
             const type = document.getElementById('type').value;
+            const category = document.getElementById('category').value;
             const date = document.getElementById('date').value;
-            
-            // Deteksi kategori menggunakan AI sederhana
-            const category = detectCategory(description, amount, type);
             
             // Buat objek transaksi
             const transaction = {
@@ -337,8 +700,8 @@
                 description,
                 amount,
                 type,
-                date,
-                category
+                category,
+                date
             };
             
             // Tambahkan ke array transaksi
@@ -350,72 +713,79 @@
             // Reset form
             document.getElementById('transaction-form').reset();
             document.getElementById('date').valueAsDate = new Date();
+            populateCategoryOptions();
             
             // Perbarui tampilan
             displayTransactions();
             updateSummary();
+            displayDailySummary();
+            displayMonthlySummary();
             generateAiInsight();
-        }
-        
-        // Fungsi untuk mendeteksi kategori menggunakan AI sederhana
-        function detectCategory(description, amount, type) {
-            if (type === 'income') return 'Pendapatan';
-            
-            const desc = description.toLowerCase();
-            
-            // Deteksi berdasarkan kata kunci dalam deskripsi
-            if (desc.includes('makan') || desc.includes('restoran') || desc.includes('warung') || desc.includes('kafe')) {
-                return 'Makanan & Minuman';
-            } else if (desc.includes('bensin') || desc.includes('transport') || desc.includes('gojek') || desc.includes('grab') || desc.includes('angkot')) {
-                return 'Transportasi';
-            } else if (desc.includes('belanja') || desc.includes('market') || desc.includes('supermarket') || desc.includes('mall')) {
-                return 'Belanja';
-            } else if (desc.includes('listrik') || desc.includes('air') || desc.includes('internet') || desc.includes('pulsa')) {
-                return 'Utilitas';
-            } else if (desc.includes('hiburan') || desc.includes('nonton') || desc.includes('film') || desc.includes('game')) {
-                return 'Hiburan';
-            } else if (desc.includes('kesehatan') || desc.includes('dokter') || desc.includes('obat') || desc.includes('rumah sakit')) {
-                return 'Kesehatan';
-            } else if (desc.includes('pendidikan') || desc.includes('buku') || desc.includes('kursus')) {
-                return 'Pendidikan';
-            } else {
-                return 'Lainnya';
-            }
         }
         
         // Fungsi untuk menampilkan transaksi
         function displayTransactions() {
-            const transactionList = document.getElementById('transaction-list');
-            transactionList.innerHTML = '';
+            const tableBody = document.getElementById('transaction-table-body');
+            tableBody.innerHTML = '';
             
             if (transactions.length === 0) {
-                transactionList.innerHTML = '<p style="text-align: center; padding: 20px;">Belum ada transaksi</p>';
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Belum ada transaksi</td></tr>';
                 return;
             }
             
-            // Urutkan transaksi berdasarkan tanggal (terbaru pertama)
-            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Dapatkan nilai filter
+            const typeFilter = document.getElementById('filter-type').value;
+            const categoryFilter = document.getElementById('filter-category').value;
+            const monthFilter = document.getElementById('filter-month').value;
+            const yearFilter = document.getElementById('filter-year').value;
             
-            sortedTransactions.forEach(transaction => {
-                const transactionItem = document.createElement('div');
-                transactionItem.className = 'transaction-item';
+            // Filter transaksi
+            let filteredTransactions = [...transactions];
+            
+            if (typeFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
+            }
+            
+            if (categoryFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => t.category === categoryFilter);
+            }
+            
+            if (monthFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const transactionMonth = new Date(t.date).getMonth() + 1;
+                    return transactionMonth == monthFilter;
+                });
+            }
+            
+            if (yearFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => {
+                    const transactionYear = new Date(t.date).getFullYear();
+                    return transactionYear == yearFilter;
+                });
+            }
+            
+            // Urutkan transaksi berdasarkan tanggal (terbaru pertama)
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Tampilkan transaksi
+            filteredTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
                 
                 const formattedDate = new Date(transaction.date).toLocaleDateString('id-ID');
                 const formattedAmount = formatCurrency(transaction.amount);
                 
-                transactionItem.innerHTML = `
-                    <div class="transaction-info">
-                        <div class="transaction-description">${transaction.description}</div>
-                        <div class="transaction-category">${transaction.category}</div>
-                        <div class="transaction-date">${formattedDate}</div>
-                    </div>
-                    <div class="transaction-amount ${transaction.type}">
-                        ${transaction.type === 'income' ? '+' : '-'} ${formattedAmount}
-                    </div>
-                    <button class="btn-danger" onclick="deleteTransaction(${transaction.id})">Hapus</button>
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${transaction.description}</td>
+                    <td><span class="transaction-category">${transaction.category}</span></td>
+                    <td>${transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
+                    <td class="${transaction.type}">${transaction.type === 'income' ? '+' : '-'} ${formattedAmount}</td>
+                    <td>
+                        <button class="btn-danger" onclick="deleteTransaction(${transaction.id})">Hapus</button>
+                    </td>
                 `;
                 
-                transactionList.appendChild(transactionItem);
+                tableBody.appendChild(row);
             });
         }
         
@@ -426,12 +796,20 @@
                 saveTransactions();
                 displayTransactions();
                 updateSummary();
+                displayDailySummary();
+                displayMonthlySummary();
                 generateAiInsight();
             }
         }
         
         // Fungsi untuk memperbarui ringkasan
         function updateSummary() {
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const today = currentDate.toISOString().split('T')[0];
+            
+            // Hitung total saldo
             const incomeTotal = transactions
                 .filter(t => t.type === 'income')
                 .reduce((sum, t) => sum + t.amount, 0);
@@ -442,130 +820,152 @@
                 
             const balance = incomeTotal - expenseTotal;
             
-            document.getElementById('income-total').textContent = formatCurrency(incomeTotal);
-            document.getElementById('expense-total').textContent = formatCurrency(expenseTotal);
-            document.getElementById('balance').textContent = formatCurrency(balance);
+            // Hitung pemasukan dan pengeluaran bulan ini
+            const incomeMonth = transactions
+                .filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return t.type === 'income' && 
+                           transactionDate.getMonth() === currentMonth && 
+                           transactionDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const expenseMonth = transactions
+                .filter(t => {
+                    const transactionDate = new Date(t.date);
+                    return t.type === 'expense' && 
+                           transactionDate.getMonth() === currentMonth && 
+                           transactionDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, t) => sum + t.amount, 0);
             
-            // Ubah warna saldo berdasarkan nilai
-            const balanceElement = document.getElementById('balance');
-            balanceElement.className = balance >= 0 ? 'balance-positive' : 'balance-negative';
+            // Hitung transaksi hari ini
+            const transactionsToday = transactions
+                .filter(t => t.date === today)
+                .length;
+            
+            document.getElementById('balance').textContent = formatCurrency(balance);
+            document.getElementById('income-month').textContent = formatCurrency(incomeMonth);
+            document.getElementById('expense-month').textContent = formatCurrency(expenseMonth);
+            document.getElementById('transactions-today').textContent = transactionsToday;
         }
         
-        // Fungsi untuk menghasilkan insight AI
-        function generateAiInsight() {
-            const insightElement = document.getElementById('ai-insight-text');
-            const categoryChart = document.getElementById('category-chart');
+        // Fungsi untuk menampilkan ringkasan harian
+        function displayDailySummary() {
+            const tableBody = document.getElementById('daily-summary-body');
+            tableBody.innerHTML = '';
             
             if (transactions.length === 0) {
-                insightElement.textContent = 'AI akan menganalisis pola pengeluaran Anda dan memberikan saran berdasarkan kategori.';
-                categoryChart.innerHTML = '<p>Belum ada data untuk dianalisis.</p>';
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Belum ada transaksi</td></tr>';
                 return;
             }
             
-            // Hitung pengeluaran per kategori
-            const expensesByCategory = {};
-            transactions
-                .filter(t => t.type === 'expense')
-                .forEach(t => {
-                    expensesByCategory[t.category] = (expensesByCategory[t.category] || 0) + t.amount;
-                });
+            // Kelompokkan transaksi per hari
+            const dailySummary = {};
             
-            // Tampilkan chart kategori
-            categoryChart.innerHTML = '';
-            const totalExpenses = Object.values(expensesByCategory).reduce((sum, amount) => sum + amount, 0);
-            
-            Object.entries(expensesByCategory).forEach(([category, amount]) => {
-                const percentage = totalExpenses > 0 ? (amount / totalExpenses * 100).toFixed(1) : 0;
+            transactions.forEach(transaction => {
+                const date = transaction.date;
                 
-                const categoryItem = document.createElement('div');
-                categoryItem.className = 'category-item';
-                categoryItem.innerHTML = `
-                    <div>
-                        <div>${category}</div>
-                        <div class="category-bar" style="width: ${percentage}%"></div>
-                    </div>
-                    <div>${formatCurrency(amount)} (${percentage}%)</div>
-                `;
+                if (!dailySummary[date]) {
+                    dailySummary[date] = {
+                        income: 0,
+                        expense: 0,
+                        count: 0
+                    };
+                }
                 
-                categoryChart.appendChild(categoryItem);
+                if (transaction.type === 'income') {
+                    dailySummary[date].income += transaction.amount;
+                } else {
+                    dailySummary[date].expense += transaction.amount;
+                }
+                
+                dailySummary[date].count++;
             });
             
-            // Generate insight berdasarkan data
-            let insight = '';
+            // Ubah menjadi array dan urutkan berdasarkan tanggal (terbaru pertama)
+            const summaryArray = Object.entries(dailySummary).map(([date, data]) => ({
+                date,
+                ...data,
+                balance: data.income - data.expense
+            })).sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            if (totalExpenses === 0) {
-                insight = 'Anda belum memiliki pengeluaran. Pertahankan kebiasaan baik ini!';
-            } else {
-                const largestCategory = Object.entries(expensesByCategory).reduce((a, b) => a[1] > b[1] ? a : b)[0];
-                const largestAmount = expensesByCategory[largestCategory];
+            // Tampilkan ringkasan harian
+            summaryArray.forEach(day => {
+                const row = document.createElement('tr');
                 
-                insight = `Pengeluaran terbesar Anda adalah untuk ${largestCategory} sebesar ${formatCurrency(largestAmount)}. `;
+                const formattedDate = new Date(day.date).toLocaleDateString('id-ID');
+                const formattedIncome = formatCurrency(day.income);
+                const formattedExpense = formatCurrency(day.expense);
+                const formattedBalance = formatCurrency(day.balance);
                 
-                // Berikan saran berdasarkan kategori terbesar
-                if (largestCategory === 'Makanan & Minuman') {
-                    insight += 'Pertimbangkan untuk memasak sendiri di rumah untuk menghemat pengeluaran makanan.';
-                } else if (largestCategory === 'Transportasi') {
-                    insight += 'Coba gunakan transportasi umum atau carpooling untuk mengurangi biaya transportasi.';
-                } else if (largestCategory === 'Belanja') {
-                    insight += 'Buat daftar belanja dan patuhi untuk menghindari pembelian impulsif.';
-                } else if (largestCategory === 'Hiburan') {
-                    insight += 'Cari alternatif hiburan gratis atau murah seperti taman atau perpustakaan.';
-                } else {
-                    insight += 'Pertimbangkan untuk mengevaluasi pengeluaran ini dan mencari cara untuk mengoptimalkannya.';
-                }
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td class="income">${formattedIncome}</td>
+                    <td class="expense">${formattedExpense}</td>
+                    <td class="${day.balance >= 0 ? 'income' : 'expense'}">${formattedBalance}</td>
+                    <td>${day.count}</td>
+                `;
                 
-                // Analisis tren bulanan (sederhana)
-                const currentMonth = new Date().getMonth();
-                const currentYear = new Date().getFullYear();
-                
-                const thisMonthExpenses = transactions
-                    .filter(t => {
-                        const transactionDate = new Date(t.date);
-                        return t.type === 'expense' && 
-                               transactionDate.getMonth() === currentMonth && 
-                               transactionDate.getFullYear() === currentYear;
-                    })
-                    .reduce((sum, t) => sum + t.amount, 0);
-                
-                const lastMonthExpenses = transactions
-                    .filter(t => {
-                        const transactionDate = new Date(t.date);
-                        const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-                        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-                        
-                        return t.type === 'expense' && 
-                               transactionDate.getMonth() === lastMonth && 
-                               transactionDate.getFullYear() === lastMonthYear;
-                    })
-                    .reduce((sum, t) => sum + t.amount, 0);
-                
-                if (lastMonthExpenses > 0) {
-                    const change = ((thisMonthExpenses - lastMonthExpenses) / lastMonthExpenses * 100).toFixed(1);
-                    
-                    if (change > 10) {
-                        insight += ` Pengeluaran bulan ini meningkat ${change}% dibanding bulan lalu. Perhatikan pengeluaran Anda.`;
-                    } else if (change < -10) {
-                        insight += ` Pengeluaran bulan ini turun ${Math.abs(change)}% dibanding bulan lalu. Bagus!`;
-                    }
-                }
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Fungsi untuk menampilkan ringkasan bulanan
+        function displayMonthlySummary() {
+            const tableBody = document.getElementById('monthly-summary-body');
+            tableBody.innerHTML = '';
+            
+            if (transactions.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Belum ada transaksi</td></tr>';
+                return;
             }
             
-            insightElement.textContent = insight;
-        }
-        
-        // Fungsi untuk menyimpan transaksi ke localStorage
-        function saveTransactions() {
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-        }
-        
-        // Fungsi untuk memformat mata uang
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(amount);
-        }
-    </script>
-</body>
-</html>
+            // Kelompokkan transaksi per bulan
+            const monthlySummary = {};
+            
+            transactions.forEach(transaction => {
+                const date = new Date(transaction.date);
+                const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                const monthName = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+                
+                if (!monthlySummary[monthYear]) {
+                    monthlySummary[monthYear] = {
+                        monthName,
+                        income: 0,
+                        expense: 0,
+                        count: 0,
+                        days: new Set()
+                    };
+                }
+                
+                if (transaction.type === 'income') {
+                    monthlySummary[monthYear].income += transaction.amount;
+                } else {
+                    monthlySummary[monthYear].expense += transaction.amount;
+                }
+                
+                monthlySummary[monthYear].count++;
+                monthlySummary[monthYear].days.add(transaction.date);
+            });
+            
+            // Ubah menjadi array dan urutkan berdasarkan bulan (terbaru pertama)
+            const summaryArray = Object.entries(monthlySummary).map(([monthYear, data]) => ({
+                monthYear,
+                ...data,
+                balance: data.income - data.expense,
+                dailyAverage: (data.income - data.expense) / data.days.size
+            })).sort((a, b) => b.monthYear.localeCompare(a.monthYear));
+            
+            // Tampilkan ringkasan bulanan
+            summaryArray.forEach(month => {
+                const row = document.createElement('tr');
+                
+                const formattedIncome = formatCurrency(month.income);
+                const formattedExpense = formatCurrency(month.expense);
+                const formattedBalance = formatCurrency(month.balance);
+                const formattedAverage = formatCurrency(month.dailyAverage);
+                
+                row.innerHTML = `
+                    <td>${month.monthName}</td>
+                   
