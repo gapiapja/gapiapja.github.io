@@ -6,6 +6,10 @@
   <title>KEDAI TENGAH MALAM — Co-op Couple Kitchen</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MQTT.js over Secure WebSockets (Primary NAT-Bypass Cloud Relay for GitHub Pages) -->
+  <script src="https://unpkg.com/mqtt@5.10.3/dist/mqtt.min.js"></script>
+  <!-- PeerJS WebRTC (Secondary Direct P2P Transport) -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <!-- Google Fonts: Fredoka, Plus Jakarta Sans, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,16 +17,17 @@
 
   <style>
     :root {
-      --bg-night: #1C1614;
-      --bg-wood-dark: #43281C;
-      --bg-wood-warm: #7C4D3A;
-      --bg-paper: #FAF4E8;
-      --bg-paper-warm: #F3E9D2;
-      --bg-steel: #D6D3CD;
-      --accent-amber: #F59E0B;
+      --bg-night: #1A1412;
+      --bg-wood-dark: #3E251B;
+      --bg-wood-warm: #754634;
+      --bg-paper: #F5EBE1;
+      --bg-paper-warm: #EDE0D1;
+      --bg-steel: #D5D1C8;
+      --accent-orange: #FF6B35;
+      --accent-gold: #FFB800;
+      --accent-mint: #2EC4B6;
       --accent-red: #E63946;
-      --accent-green: #2A9D8F;
-      --ink-dark: #1C1614;
+      --ink-dark: #1A1412;
     }
 
     * {
@@ -38,11 +43,10 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden;
-      /* Subtle warm night diner tile pattern */
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.14) 0%, transparent 60%),
-        linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+        radial-gradient(circle at 50% 0%, rgba(255, 107, 53, 0.16) 0%, transparent 62%),
+        linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
       background-size: 100% 100%, 32px 32px, 32px 32px;
     }
 
@@ -54,44 +58,37 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* Tactile Neo-Brutalist Arcade Borders & Shadows */
+    /* Tactile Retro-Modern Izakaya Cards & Buttons */
     .tactile-card {
       background-color: var(--bg-paper);
-      border: 3px solid #1C1614;
-      box-shadow: 4px 4px 0px #1C1614;
-      border-radius: 14px;
-    }
-
-    .tactile-card-sm {
-      background-color: var(--bg-paper);
-      border: 2.5px solid #1C1614;
-      box-shadow: 3px 3px 0px #1C1614;
-      border-radius: 10px;
+      border: 3px solid #1A1412;
+      box-shadow: 4px 4px 0px #1A1412;
+      border-radius: 16px;
     }
 
     .tactile-wood {
       background: repeating-linear-gradient(
         90deg,
-        #7C4D3A,
-        #7C4D3A 24px,
-        #6E4230 24px,
-        #6E4230 48px
+        #754634,
+        #754634 26px,
+        #663B2B 26px,
+        #663B2B 52px
       );
-      border: 3px solid #1C1614;
-      box-shadow: 4px 4px 0px #1C1614;
-      border-radius: 14px;
+      border: 3px solid #1A1412;
+      box-shadow: 4px 4px 0px #1A1412;
+      border-radius: 16px;
     }
 
     .tactile-steel {
-      background: linear-gradient(180deg, #E6E4DF 0%, #CFCBC4 100%);
-      border: 3px solid #1C1614;
-      box-shadow: 4px 4px 0px #1C1614;
+      background: linear-gradient(180deg, #E8E5DE 0%, #CBC7BE 100%);
+      border: 3px solid #1A1412;
+      box-shadow: 4px 4px 0px #1A1412;
       border-radius: 14px;
     }
 
     .tactile-btn {
-      border: 3px solid #1C1614;
-      box-shadow: 3px 3px 0px #1C1614;
+      border: 3px solid #1A1412;
+      box-shadow: 3px 3px 0px #1A1412;
       border-radius: 12px;
       transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
       cursor: pointer;
@@ -99,7 +96,7 @@
 
     .tactile-btn:active:not(:disabled) {
       transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px #1C1614;
+      box-shadow: 1px 1px 0px #1A1412;
     }
 
     .tactile-btn:disabled {
@@ -107,28 +104,27 @@
       cursor: not-allowed;
     }
 
-    /* Paper receipt serrated bottom edge */
     .receipt-ticket {
-      background-color: #FAF4E8;
-      border: 2.5px solid #1C1614;
-      box-shadow: 3px 3px 0px #1C1614;
-      border-radius: 8px 8px 4px 4px;
+      background-color: #F5EBE1;
+      border: 2.5px solid #1A1412;
+      box-shadow: 3px 3px 0px #1A1412;
+      border-radius: 10px 10px 4px 4px;
       position: relative;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .receipt-ticket.selected-ticket {
-      background-color: #FEF3C7;
-      box-shadow: 0 0 0 3px #F59E0B, 4px 4px 0px #1C1614;
+      background-color: #FFF3CD;
+      box-shadow: 0 0 0 3px #FF6B35, 4px 4px 0px #1A1412;
       transform: translateY(-2px);
     }
 
     /* Micro Animations */
     @keyframes chopShake {
       0%, 100% { transform: translate(0, 0) rotate(0deg); }
-      25% { transform: translate(-4px, 3px) rotate(-2deg); }
-      50% { transform: translate(4px, -2px) rotate(2deg); }
-      75% { transform: translate(-2px, 2px) rotate(-1deg); }
+      25% { transform: translate(-5px, 3px) rotate(-3deg); }
+      50% { transform: translate(5px, -2px) rotate(3deg); }
+      75% { transform: translate(-3px, 2px) rotate(-1deg); }
     }
 
     .animate-chop {
@@ -137,138 +133,148 @@
 
     @keyframes sizzlePulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.03); }
+      50% { transform: scale(1.04); }
     }
 
     .animate-sizzle {
-      animation: sizzlePulse 0.6s infinite ease-in-out;
+      animation: sizzlePulse 0.55s infinite ease-in-out;
     }
 
-    @keyframes floatUp {
-      0% { opacity: 1; transform: translateY(0) scale(0.9); }
-      100% { opacity: 0; transform: translateY(-38px) scale(1.1); }
+    @keyframes floatEmoteUp {
+      0% { opacity: 0; transform: translateY(16px) scale(0.85); }
+      15% { opacity: 1; transform: translateY(0px) scale(1.04); }
+      80% { opacity: 1; transform: translateY(-28px) scale(1); }
+      100% { opacity: 0; transform: translateY(-48px) scale(0.92); }
     }
 
-    .float-feedback {
-      animation: floatUp 0.95s ease-out forwards;
+    .emote-bubble {
+      animation: floatEmoteUp 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       pointer-events: none;
     }
 
     @keyframes lanternGlow {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.5)); }
-      50% { filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.85)); }
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 107, 53, 0.55)); }
+      50% { filter: drop-shadow(0 0 14px rgba(255, 184, 0, 0.9)); }
     }
 
     .lantern-glow {
       animation: lanternGlow 3s infinite ease-in-out;
     }
 
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #29201D;
+      background: #271E1B;
     }
     ::-webkit-scrollbar-thumb {
-      background: #F59E0B;
+      background: #FF6B35;
       border-radius: 3px;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between">
 
-  <!-- FLOATING TOAST / PING CONTAINER -->
-  <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
+  <!-- FLOATING TOAST & COUPLE PING SPEECH BUBBLES -->
+  <div id="toast-container" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
 
-  <!-- ==========================================
-       SCREEN 1: LOBBY & MODE SELECTION
-       ========================================== -->
+  <!-- FLOATING EMOTE STAGE (VISIBLE IN WAITING ROOM & KITCHEN) -->
+  <div id="emote-stage" class="fixed bottom-16 right-6 z-50 flex flex-col-reverse items-end gap-2 pointer-events-none"></div>
+
+  <!-- =========================================================
+       SCREEN 1: HOME LOBBY & MODE SELECTION
+       ========================================================= -->
   <div id="lobby-screen" class="min-h-screen w-full flex flex-col items-center justify-center p-3 sm:p-6">
-    <!-- Roof Awning Banner -->
     <div class="w-full max-w-4xl mb-4">
-      <div class="grid grid-cols-8 h-5 rounded-t-xl overflow-hidden border-t-3 border-x-3 border-[#1C1614]">
-        <div class="bg-[#E63946]"></div>
-        <div class="bg-[#FAF4E8]"></div>
-        <div class="bg-[#E63946]"></div>
-        <div class="bg-[#FAF4E8]"></div>
-        <div class="bg-[#E63946]"></div>
-        <div class="bg-[#FAF4E8]"></div>
-        <div class="bg-[#E63946]"></div>
-        <div class="bg-[#FAF4E8]"></div>
+      <!-- Izakaya Awning Stripes -->
+      <div class="grid grid-cols-8 h-5 rounded-t-xl overflow-hidden border-t-3 border-x-3 border-[#1A1412]">
+        <div class="bg-[#FF6B35]"></div>
+        <div class="bg-[#F5EBE1]"></div>
+        <div class="bg-[#FF6B35]"></div>
+        <div class="bg-[#F5EBE1]"></div>
+        <div class="bg-[#FF6B35]"></div>
+        <div class="bg-[#F5EBE1]"></div>
+        <div class="bg-[#FF6B35]"></div>
+        <div class="bg-[#F5EBE1]"></div>
       </div>
 
       <div class="tactile-card p-5 sm:p-7 relative overflow-hidden">
-        <!-- Hanging Lantern SVG Decor -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b-2 border-dashed border-[#1C1614]/30 pb-5">
+        <!-- Top Header -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b-2 border-dashed border-[#1A1412]/30 pb-5">
           <div class="flex items-center gap-3.5">
-            <div class="w-16 h-16 rounded-2xl bg-[#E63946] border-3 border-[#1C1614] shadow-[3px_3px_0px_#1C1614] flex items-center justify-center lantern-glow shrink-0">
-              <!-- Custom Ramen/Wok Lantern SVG -->
-              <svg class="w-10 h-10 text-[#FAF4E8]" viewBox="0 0 64 64" fill="none">
-                <path d="M12 34C12 46 21 54 32 54C43 54 52 46 52 34H12Z" fill="#F59E0B" stroke="#1C1614" stroke-width="3.5"/>
-                <path d="M8 34H56" stroke="#1C1614" stroke-width="4" stroke-linecap="round"/>
-                <path d="M22 26C22 21 26 19 26 14" stroke="#FAF4E8" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M32 26C32 21 36 19 36 14" stroke="#FAF4E8" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M42 26C42 21 46 19 46 14" stroke="#FAF4E8" stroke-width="3.5" stroke-linecap="round"/>
-                <rect x="24" y="54" width="16" height="4" rx="2" fill="#1C1614"/>
+            <div class="w-16 h-16 rounded-2xl bg-[#FF6B35] border-3 border-[#1A1412] shadow-[3px_3px_0px_#1A1412] flex items-center justify-center lantern-glow shrink-0">
+              <svg class="w-10 h-10 text-[#F5EBE1]" viewBox="0 0 64 64" fill="none">
+                <path d="M12 34C12 46 21 54 32 54C43 54 52 46 52 34H12Z" fill="#FFB800" stroke="#1A1412" stroke-width="3.5"/>
+                <path d="M8 34H56" stroke="#1A1412" stroke-width="4" stroke-linecap="round"/>
+                <path d="M22 26C22 21 26 19 26 14" stroke="#F5EBE1" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M32 26C32 21 36 19 36 14" stroke="#F5EBE1" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M42 26C42 21 46 19 46 14" stroke="#F5EBE1" stroke-width="3.5" stroke-linecap="round"/>
+                <rect x="24" y="54" width="16" height="4" rx="2" fill="#1A1412"/>
               </svg>
             </div>
             <div>
-              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F59E0B] border-2 border-[#1C1614] text-xs font-extrabold tracking-wide uppercase mb-1">
-                <span>🏮 Co-op Couple Kitchen</span>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFB800] border-2 border-[#1A1412] text-xs font-extrabold tracking-wide uppercase mb-1">
+                <span>🏮 Co-op Couple Kitchen v2.0</span>
               </div>
-              <h1 class="font-display text-2xl sm:text-4xl font-bold text-[#1C1614] tracking-tight leading-none">
+              <h1 class="font-display text-2xl sm:text-4xl font-bold text-[#1A1412] tracking-tight leading-none">
                 KEDAI TENGAH MALAM
               </h1>
               <p class="text-xs sm:text-sm font-semibold text-[#5C3A2E] mt-1">
-                Masak bareng, oper bahan, & jangan sampai wajan gosong pas Rush Hour!
+                Masak bareng pasangan lintas jaringan, oper bahan, & jangan biarkan wajan gosong!
               </p>
             </div>
           </div>
 
-          <!-- Player Name & Sound Setup -->
+          <!-- Chef Name, Sound & Network Config -->
           <div class="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
             <div class="flex items-center gap-2 w-full sm:w-auto">
               <label class="text-xs font-extrabold uppercase text-[#5C3A2E]">Nama Chef:</label>
-              <input id="player-name-input" type="text" maxlength="12" value="Chef Sayang" 
-                class="px-3 py-1.5 rounded-lg bg-white border-2 border-[#1C1614] font-bold text-sm w-36 focus:outline-none focus:ring-2 focus:ring-[#F59E0B]" />
-              <button onclick="AudioEngine.toggleMute()" id="lobby-sound-btn" class="tactile-btn bg-[#FAF4E8] px-3 py-1.5 text-xs font-extrabold">
-                🔊 Suara: ON
+              <input id="player-name-input" type="text" maxlength="14" value="Chef Sayang" 
+                class="px-3 py-1.5 rounded-lg bg-white border-2 border-[#1A1412] font-bold text-sm w-36 focus:outline-none focus:ring-2 focus:ring-[#FF6B35]" />
+              <button onclick="AudioEngine.toggleMute()" id="lobby-sound-btn" class="tactile-btn bg-[#F5EBE1] px-2.5 py-1.5 text-xs font-extrabold">
+                🔊 ON
               </button>
             </div>
-            <div class="text-[11px] font-mono-ticket bg-[#F3E9D2] px-2.5 py-1 rounded border border-[#1C1614]/30 text-[#43281C]">
-              💰 Saldo Kedai: <span id="lobby-coins-display" class="font-extrabold text-[#E63946]">120</span> Koin
+            <div class="flex items-center gap-2 justify-between sm:justify-end w-full">
+              <div class="text-[11px] font-mono-ticket bg-[#EDE0D1] px-2.5 py-1 rounded border border-[#1A1412]/30 text-[#3E251B]">
+                💰 Kas Kedai: <span id="lobby-coins-display" class="font-extrabold text-[#E63946]">120</span> Koin
+              </div>
+              <button onclick="GameApp.openNetworkModal()" class="text-[11px] font-extrabold px-2 py-1 rounded bg-white border border-[#1A1412] hover:bg-[#FFF3CD]">
+                ⚙️ Server / Firebase
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- 3-STEP HOW TO PLAY VISUAL STRIP -->
-        <div class="my-5 bg-[#F3E9D2] border-2 border-[#1C1614] rounded-xl p-3.5">
-          <div class="text-xs font-extrabold uppercase tracking-wider text-[#5C3A2E] mb-2.5 flex items-center justify-between">
+        <!-- 3-Step Asymmetric Co-op Guide -->
+        <div class="my-4 bg-[#EDE0D1] border-2 border-[#1A1412] rounded-xl p-3">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-[#3E251B] mb-2 flex flex-wrap items-center justify-between gap-1">
             <span>📋 CARA KERJA SAMA TIM (ASYMMETRIC CO-OP):</span>
-            <span class="text-[11px] bg-[#2A9D8F] text-white px-2 py-0.5 rounded border border-[#1C1614]">Bisa sambil Voice Call / Discord!</span>
+            <span id="net-QuickStatus" class="text-[11px] bg-[#2EC4B6] text-[#1A1412] font-mono-ticket px-2 py-0.5 rounded border border-[#1A1412] font-bold">
+              🟢 Multi-Relay Siap (GitHub Pages Ready)
+            </span>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div class="bg-[#FAF4E8] border-2 border-[#1C1614] rounded-lg p-2.5 flex items-start gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-[#2A9D8F] text-white border-2 border-[#1C1614] flex items-center justify-center font-display font-bold text-base shrink-0">1</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+            <div class="bg-[#F5EBE1] border-2 border-[#1A1412] rounded-lg p-2.5 flex items-start gap-2">
+              <div class="w-7 h-7 rounded-lg bg-[#2EC4B6] text-[#1A1412] border-2 border-[#1A1412] flex items-center justify-center font-display font-bold text-sm shrink-0">1</div>
               <div>
-                <div class="font-extrabold text-[#1C1614]">🔪 Station 1: Potong & Cuci</div>
-                <p class="text-[#5C3A2E] mt-0.5 leading-snug">Ambil bahan mentah, potong 4x di talenan, lalu <b>Oper ke Meja Tengah</b>. Jangan lupa cuci piring kotor & kasih Es Teh!</p>
+                <div class="font-extrabold text-[#1A1412]">🔪 Station 1: Potong & Wastafel</div>
+                <p class="text-[#5C3A2E] mt-0.5 leading-snug">Ambil bahan mentah, potong di talenan kayu, lalu <b>Oper ke Meja Tengah</b>. Cuci piring kotor & racik Es Teh Manis!</p>
               </div>
             </div>
-            <div class="bg-[#FAF4E8] border-2 border-[#1C1614] rounded-lg p-2.5 flex items-start gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-[#F59E0B] text-[#1C1614] border-2 border-[#1C1614] flex items-center justify-center font-display font-bold text-base shrink-0">2</div>
+            <div class="bg-[#F5EBE1] border-2 border-[#1A1412] rounded-lg p-2.5 flex items-start gap-2">
+              <div class="w-7 h-7 rounded-lg bg-[#FFB800] text-[#1A1412] border-2 border-[#1A1412] flex items-center justify-center font-display font-bold text-sm shrink-0">2</div>
               <div>
-                <div class="font-extrabold text-[#1C1614]">🤝 Meja Oper Tengah</div>
-                <p class="text-[#5C3A2E] mt-0.5 leading-snug">Jembatan kalian berdua! Bahan yang ditaruh Station 1 langsung muncul di layar Station 2 secara <i>real-time</i>.</p>
+                <div class="font-extrabold text-[#1A1412]">🤝 Meja Oper Tengah (4 Slot)</div>
+                <p class="text-[#5C3A2E] mt-0.5 leading-snug">Jembatan <i>real-time</i> kalian berdua! Bahan yang ditaruh Station 1 langsung muncul di layar Station 2 detik itu juga.</p>
               </div>
             </div>
-            <div class="bg-[#FAF4E8] border-2 border-[#1C1614] rounded-lg p-2.5 flex items-start gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-[#E63946] text-white border-2 border-[#1C1614] flex items-center justify-center font-display font-bold text-base shrink-0">3</div>
+            <div class="bg-[#F5EBE1] border-2 border-[#1A1412] rounded-lg p-2.5 flex items-start gap-2">
+              <div class="w-7 h-7 rounded-lg bg-[#FF6B35] text-white border-2 border-[#1A1412] flex items-center justify-center font-display font-bold text-sm shrink-0">3</div>
               <div>
-                <div class="font-extrabold text-[#1C1614]">🔥 Station 2: Masak & Saji</div>
-                <p class="text-[#5C3A2E] mt-0.5 leading-snug">Masak bahan dari Meja Oper di Wok sampai <b>HIJAU (Matang)</b>, susun di piring bersih sesuai resep, lalu <b>Antar Pesanan!</b></p>
+                <div class="font-extrabold text-[#1A1412]">🔥 Station 2: Wok & Plating</div>
+                <p class="text-[#5C3A2E] mt-0.5 leading-snug">Masak bahan dari Meja Oper di Wok sampai <b>HIJAU (Matang)</b>, susun di piring bersih sesuai bon, lalu <b>Antar Pesanan!</b></p>
               </div>
             </div>
           </div>
@@ -277,108 +283,113 @@
         <!-- 3 PLAY MODES GRID -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           
-          <!-- MODE 1: MULTIPLAYER LDR ROOM -->
-          <div class="bg-[#FEF3C7] border-3 border-[#1C1614] rounded-xl p-4 shadow-[3px_3px_0px_#1C1614] flex flex-col justify-between">
+          <!-- MODE 1: ONLINE LDR MULTIPLAYER ROOM -->
+          <div class="bg-[#FFF3CD] border-3 border-[#1A1412] rounded-xl p-4 shadow-[3px_3px_0px_#1A1412] flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="px-2.5 py-0.5 rounded-md bg-[#E63946] text-white text-[11px] font-extrabold border border-[#1C1614]">FAVORIT LDR</span>
-                <span id="cloud-status-badge" class="text-[11px] font-mono-ticket font-bold text-[#2A9D8F]">● Siap Konek</span>
+                <span class="px-2.5 py-0.5 rounded-md bg-[#FF6B35] text-white text-[11px] font-extrabold border border-[#1A1412]">MULTIPLAYER LDR</span>
+                <span class="text-[11px] font-mono-ticket font-bold text-[#1A1412]">⚡ WSS + P2P</span>
               </div>
-              <h2 class="font-display text-xl font-bold text-[#1C1614]">🌐 Main Berdua (Kode Room)</h2>
+              <h2 class="font-display text-xl font-bold text-[#1A1412]">🌐 Main Berdua (Kode Room)</h2>
               <p class="text-xs text-[#5C3A2E] mt-1 leading-relaxed">
-                Bikin kode room dan kasih ke pasanganmu, atau masukin kode yang sama buat langsung sinkronisasi dapur!
+                Ketik kode room yang sama (misal: <b>NISA88</b>) di HP/Laptop masing-masing untuk masuk ke <b>Waiting Lobby</b> & sinkronisasi dapur!
               </p>
 
-              <div class="mt-3 p-2.5 bg-[#FAF4E8] border-2 border-[#1C1614] rounded-lg">
-                <label class="block text-[11px] font-extrabold uppercase text-[#5C3A2E] mb-1">Kode Room Kalian (4-8 Huruf/Angka):</label>
+              <div class="mt-3 p-2.5 bg-[#F5EBE1] border-2 border-[#1A1412] rounded-lg">
+                <label class="block text-[11px] font-extrabold uppercase text-[#5C3A2E] mb-1">Kode Room Kalian (Bebas / Acak):</label>
                 <div class="flex gap-2">
-                  <input id="room-code-input" type="text" maxlength="8" placeholder="MISAL: KEDAI88" 
-                    class="w-full px-3 py-2 rounded-lg bg-white border-2 border-[#1C1614] font-mono-ticket font-extrabold uppercase text-base tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-[#E63946]" />
-                  <button onclick="GameApp.generateRandomRoomCode()" title="Acak Kode" class="tactile-btn bg-[#F3E9D2] px-3 py-2 text-xs font-extrabold">
+                  <input id="room-code-input" type="text" maxlength="10" placeholder="KEDAI88" 
+                    class="w-full px-3 py-2 rounded-lg bg-white border-2 border-[#1A1412] font-mono-ticket font-extrabold uppercase text-base tracking-wider text-center focus:outline-none focus:ring-2 focus:ring-[#FF6B35]" />
+                  <button onclick="GameApp.generateRandomRoomCode()" title="Acak Kode" class="tactile-btn bg-[#EDE0D1] px-3 py-2 text-xs font-extrabold">
                     🎲 Acak
                   </button>
                 </div>
 
                 <label class="block text-[11px] font-extrabold uppercase text-[#5C3A2E] mt-2.5 mb-1">Pilih Posisi Awalmu:</label>
                 <div class="grid grid-cols-2 gap-2">
-                  <button id="ldr-role-1" onclick="GameApp.selectLdrRole(1)" class="py-1.5 px-2 rounded-lg border-2 border-[#1C1614] bg-[#2A9D8F] text-white font-extrabold text-xs">
+                  <button id="ldr-role-1" onclick="GameApp.selectLdrRole(1)" class="py-1.5 px-2 rounded-lg border-2 border-[#1A1412] bg-[#2EC4B6] text-[#1A1412] font-extrabold text-xs">
                     🔪 Station 1 (Potong)
                   </button>
-                  <button id="ldr-role-2" onclick="GameApp.selectLdrRole(2)" class="py-1.5 px-2 rounded-lg border-2 border-[#1C1614] bg-white text-[#1C1614] font-extrabold text-xs">
-                    🔥 Station 2 (Kompor)
+                  <button id="ldr-role-2" onclick="GameApp.selectLdrRole(2)" class="py-1.5 px-2 rounded-lg border-2 border-[#1A1412] bg-white text-[#1A1412] font-extrabold text-xs">
+                    🔥 Station 2 (Wok)
                   </button>
                 </div>
               </div>
             </div>
 
-            <button onclick="GameApp.startMultiplayerRoom()" class="tactile-btn w-full mt-4 py-3 bg-[#E63946] hover:bg-[#d62f3c] text-white font-display font-bold text-base tracking-wide flex items-center justify-center gap-2">
-              <span>🚪 BUKA / GABUNG ROOM LDR</span>
-            </button>
+            <div class="grid grid-cols-2 gap-2 mt-4">
+              <button onclick="GameApp.openMultiplayerLobby('host')" class="tactile-btn py-3 bg-[#FF6B35] hover:bg-[#e85d2a] text-white font-display font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-1">
+                <span>🏠 BUAT ROOM</span>
+              </button>
+              <button onclick="GameApp.openMultiplayerLobby('guest')" class="tactile-btn py-3 bg-[#2EC4B6] hover:bg-[#25ab9e] text-[#1A1412] font-display font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-1">
+                <span>🚪 GABUNG ROOM</span>
+              </button>
+            </div>
           </div>
 
           <!-- MODE 2: SOLO + SMART AI PARTNER -->
-          <div class="bg-[#FAF4E8] border-3 border-[#1C1614] rounded-xl p-4 shadow-[3px_3px_0px_#1C1614] flex flex-col justify-between">
+          <div class="bg-[#F5EBE1] border-3 border-[#1A1412] rounded-xl p-4 shadow-[3px_3px_0px_#1A1412] flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="px-2.5 py-0.5 rounded-md bg-[#2A9D8F] text-white text-[11px] font-extrabold border border-[#1C1614]">AUTO CO-OP BOT</span>
+                <span class="px-2.5 py-0.5 rounded-md bg-[#2EC4B6] text-[#1A1412] text-[11px] font-extrabold border border-[#1A1412]">AUTO CO-OP BOT</span>
                 <span class="text-[11px] font-bold text-[#5C3A2E]">🤖 AI Partner Aktif</span>
               </div>
-              <h2 class="font-display text-xl font-bold text-[#1C1614]">🤖 Main + Bot Pasangan</h2>
+              <h2 class="font-display text-xl font-bold text-[#1A1412]">🤖 Main + Bot Pasangan</h2>
               <p class="text-xs text-[#5C3A2E] mt-1 leading-relaxed">
-                Pasangan lagi sibuk atau mau latihan dulu? Pilih salah satu meja, dan <b>Bot Chef Pasangan</b> bakal otomatis bantuin di meja sebelahnya!
+                Pasangan lagi kuliah/kerja atau mau pemanasan dulu? Pilih salah satu meja, dan <b>Bot Chef Pasangan</b> bakal sigap bantuin di meja sebelahnya!
               </p>
 
               <div class="mt-3 space-y-2">
-                <button onclick="GameApp.startAiPartnerMode(1)" class="tactile-btn w-full p-2.5 bg-[#E6F4F1] hover:bg-[#d0ece6] text-left flex items-center justify-between">
+                <button onclick="GameApp.startAiPartnerMode(1)" class="tactile-btn w-full p-2.5 bg-[#E0F7F4] hover:bg-[#c8f0eb] text-left flex items-center justify-between">
                   <div>
-                    <div class="font-extrabold text-xs text-[#1C1614]">🔪 Aku di Meja Potong & Cuci</div>
+                    <div class="font-extrabold text-xs text-[#1A1412]">🔪 Aku di Meja Potong & Cuci</div>
                     <div class="text-[11px] text-[#5C3A2E]">Bot Pasangan yang jaga Wok & Saji</div>
                   </div>
-                  <span class="px-2 py-1 bg-[#2A9D8F] text-white rounded text-xs font-extrabold border border-[#1C1614]">Mulai →</span>
+                  <span class="px-2 py-1 bg-[#2EC4B6] text-[#1A1412] rounded text-xs font-extrabold border border-[#1A1412]">Mulai →</span>
                 </button>
 
-                <button onclick="GameApp.startAiPartnerMode(2)" class="tactile-btn w-full p-2.5 bg-[#FEF3C7] hover:bg-[#fde68a] text-left flex items-center justify-between">
+                <button onclick="GameApp.startAiPartnerMode(2)" class="tactile-btn w-full p-2.5 bg-[#FFF3CD] hover:bg-[#ffe69c] text-left flex items-center justify-between">
                   <div>
-                    <div class="font-extrabold text-xs text-[#1C1614]">🔥 Aku di Meja Kompor & Saji</div>
+                    <div class="font-extrabold text-xs text-[#1A1412]">🔥 Aku di Meja Kompor & Saji</div>
                     <div class="text-[11px] text-[#5C3A2E]">Bot Pasangan yang potong bahan & cuci piring</div>
                   </div>
-                  <span class="px-2 py-1 bg-[#F59E0B] text-[#1C1614] rounded text-xs font-extrabold border border-[#1C1614]">Mulai →</span>
+                  <span class="px-2 py-1 bg-[#FFB800] text-[#1A1412] rounded text-xs font-extrabold border border-[#1A1412]">Mulai →</span>
                 </button>
               </div>
             </div>
 
-            <div class="mt-3 text-[11px] text-[#5C3A2E] bg-[#F3E9D2] p-2 rounded-lg border border-[#1C1614]/30">
-              💡 <b>Tips:</b> Kamu tetap bisa pindah tab meja kapan aja kalau mau ambil alih kerjaan Bot!
+            <div class="mt-3 text-[11px] text-[#5C3A2E] bg-[#EDE0D1] p-2 rounded-lg border border-[#1A1412]/30">
+              💡 <b>Fleksibel:</b> Kamu tetap bisa pindah tab meja kapan saja kalau mau bantu kerjaan Bot!
             </div>
           </div>
 
-          <!-- MODE 3: SOLO / SPLIT-SCREEN BEBAS & SHOP -->
-          <div class="bg-[#FAF4E8] border-3 border-[#1C1614] rounded-xl p-4 shadow-[3px_3px_0px_#1C1614] flex flex-col justify-between">
+          <!-- MODE 3: SPLIT-SCREEN / CHEF BEBAS & SHOP -->
+          <div class="bg-[#F5EBE1] border-3 border-[#1A1412] rounded-xl p-4 shadow-[3px_3px_0px_#1A1412] flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-2">
-                <span class="px-2.5 py-0.5 rounded-md bg-[#F59E0B] text-[#1C1614] text-[11px] font-extrabold border border-[#1C1614]">KONTROL PENUH</span>
-                <span class="text-[11px] font-bold text-[#5C3A2E]">🖥️ 1 atau 2 Layar</span>
+                <span class="px-2.5 py-0.5 rounded-md bg-[#FFB800] text-[#1A1412] text-[11px] font-extrabold border border-[#1A1412]">KONTROL PENUH</span>
+                <span class="text-[11px] font-bold text-[#5C3A2E]">🖥️ Split-Screen</span>
               </div>
-              <h2 class="font-display text-xl font-bold text-[#1C1614]">⚡ Mode Chef Serbabisa</h2>
+              <h2 class="font-display text-xl font-bold text-[#1A1412]">⚡ Mode Split-Screen</h2>
               <p class="text-xs text-[#5C3A2E] mt-1 leading-relaxed">
-                Kendalikan seluruh dapur sendirian atau main berdua di 1 layar laptop/tablet dengan mode <b>Split-Screen</b>!
+                Kendalikan seluruh dapur sendirian atau main berdua berdampingan di 1 layar laptop/tablet!
               </p>
 
               <div class="mt-3 space-y-2">
-                <button onclick="GameApp.startSoloFreeMode()" class="tactile-btn w-full py-2.5 px-3 bg-[#F59E0B] hover:bg-[#d97706] text-[#1C1614] font-display font-bold text-sm flex items-center justify-center gap-2">
-                  <span>🍳 MULAI MODE BEBAS (SEMUA MEJA)</span>
+                <button onclick="GameApp.startSoloFreeMode()" class="tactile-btn w-full py-2.5 px-3 bg-[#FFB800] hover:bg-[#e5a600] text-[#1A1412] font-display font-bold text-sm flex items-center justify-center gap-2">
+                  <span>🍳 MULAI SPLIT-SCREEN (2 MEJA)</span>
                 </button>
-                <button onclick="GameApp.openShopModal()" class="tactile-btn w-full py-2 px-3 bg-white hover:bg-[#F3E9D2] text-[#1C1614] font-extrabold text-xs flex items-center justify-center gap-2">
+                <button onclick="GameApp.openShopModal()" class="tactile-btn w-full py-2 px-3 bg-white hover:bg-[#EDE0D1] text-[#1A1412] font-extrabold text-xs flex items-center justify-center gap-2">
                   <span>🛒 TOKO UPGRADE KEDAI</span>
                 </button>
-                <button onclick="GameApp.openRecipeModal()" class="tactile-btn w-full py-2 px-3 bg-white hover:bg-[#F3E9D2] text-[#1C1614] font-extrabold text-xs flex items-center justify-center gap-2">
-                  <span>📖 LIHAT BUKU RESEP RAHASIA</span>
+                <button onclick="GameApp.openRecipeModal()" class="tactile-btn w-full py-2 px-3 bg-white hover:bg-[#EDE0D1] text-[#1A1412] font-extrabold text-xs flex items-center justify-center gap-2">
+                  <span>📖 BUKU RESEP & PANDUAN</span>
                 </button>
               </div>
             </div>
 
-            <div class="mt-3 text-[11px] text-[#5C3A2E] bg-[#F3E9D2] p-2 rounded-lg border border-[#1C1614]/30">
-              🏆 Target Shift Malam: Layani sebanyak mungkin pelanggan dalam <b>3 Menit</b> tanpa bikin mereka kabur!
+            <div class="mt-3 text-[11px] text-[#5C3A2E] bg-[#EDE0D1] p-2 rounded-lg border border-[#1A1412]/30">
+              🏆 Target Shift Malam: Layani pelanggan sebanyak mungkin dalam <b>3 Menit</b>!
             </div>
           </div>
 
@@ -387,70 +398,234 @@
     </div>
   </div>
 
-  <!-- ==========================================
+  <!-- =========================================================
+       MODAL: INTERACTIVE MULTIPLAYER WAITING ROOM LOBBY
+       ========================================================= -->
+  <div id="waiting-room-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-3 sm:p-5">
+    <div class="tactile-card max-w-2xl w-full p-5 sm:p-6 max-h-[94vh] overflow-y-auto">
+      
+      <!-- Top Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#1A1412] pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-10 h-10 rounded-xl bg-[#FF6B35] text-white border-2 border-[#1A1412] flex items-center justify-center text-xl font-bold">🏮</span>
+          <div>
+            <h2 class="font-display text-xl sm:text-2xl font-bold text-[#1A1412] leading-none">LOBBY DAPUR BERDUA</h2>
+            <p id="waiting-net-status" class="text-xs font-mono-ticket font-bold text-[#2EC4B6] mt-1">
+              🔄 Menghubungkan ke Cloud Relay...
+            </p>
+          </div>
+        </div>
+        <button onclick="GameApp.leaveWaitingRoom()" class="tactile-btn bg-[#E63946] text-white px-3 py-1.5 text-xs font-extrabold">
+          ← Batal / Keluar
+        </button>
+      </div>
+
+      <!-- Room Code & Invite Link Box -->
+      <div class="my-4 bg-[#FFF3CD] border-3 border-[#1A1412] rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <div class="text-[11px] font-extrabold uppercase text-[#5C3A2E]">KODE ROOM KALIAN:</div>
+          <div id="waiting-room-code-text" class="font-mono-ticket text-2xl sm:text-3xl font-extrabold text-[#1A1412] tracking-widest">
+            KEDAI88
+          </div>
+          <div class="text-[11px] font-semibold text-[#5C3A2E]">
+            Pastikan pasanganmu mengetik kode yang persis sama!
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+          <button onclick="GameApp.copyRoomCode()" class="tactile-btn bg-white hover:bg-[#F5EBE1] px-3 py-2 text-xs font-extrabold flex-1 sm:flex-initial">
+            📋 Salin Kode
+          </button>
+          <button onclick="GameApp.copyInviteLink()" class="tactile-btn bg-[#FFB800] hover:bg-[#e5a600] px-3 py-2 text-xs font-extrabold flex-1 sm:flex-initial">
+            🔗 Salin Link Invite
+          </button>
+        </div>
+      </div>
+
+      <!-- 2 CHEF SLOTS (STATION 1 & STATION 2) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-4">
+        
+        <!-- Slot Station 1 -->
+        <div id="lobby-slot-1" class="p-4 rounded-xl bg-[#E0F7F4] border-3 border-[#1A1412] shadow-[3px_3px_0px_#1A1412] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-[#2EC4B6] text-[#1A1412] font-extrabold text-[11px] border border-[#1A1412]">
+                🔪 STATION 1
+              </span>
+              <span id="slot1-status-pill" class="text-[11px] font-mono-ticket font-extrabold text-[#1A1412]">
+                ⏳ Menunggu...
+              </span>
+            </div>
+            <h3 class="font-display text-lg font-bold text-[#1A1412] mt-2">Meja Potong & Wastafel</h3>
+            <p class="text-xs text-[#5C3A2E] leading-snug">Tugas: Ambil bahan mentah, potong di talenan, oper ke tengah, cuci piring & buat Es Teh.</p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t-2 border-dashed border-[#1A1412]/30 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🧑🏻‍🍳</span>
+              <span id="slot1-player-name" class="font-extrabold text-sm text-[#1A1412]">Kosong</span>
+            </div>
+            <span id="slot1-you-badge" class="hidden px-2 py-0.5 rounded bg-[#1A1412] text-[#F5EBE1] text-[10px] font-extrabold">KAMU</span>
+          </div>
+        </div>
+
+        <!-- Slot Station 2 -->
+        <div id="lobby-slot-2" class="p-4 rounded-xl bg-[#FFE8D6] border-3 border-[#1A1412] shadow-[3px_3px_0px_#1A1412] flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-[#FF6B35] text-white font-extrabold text-[11px] border border-[#1A1412]">
+                🔥 STATION 2
+              </span>
+              <span id="slot2-status-pill" class="text-[11px] font-mono-ticket font-extrabold text-[#1A1412]">
+                ⏳ Menunggu...
+              </span>
+            </div>
+            <h3 class="font-display text-lg font-bold text-[#1A1412] mt-2">Meja Kompor Wok & Saji</h3>
+            <p class="text-xs text-[#5C3A2E] leading-snug">Tugas: Masak bahan dari meja oper di 2 Wok, susun resep di piring bersih & antar pesanan.</p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t-2 border-dashed border-[#1A1412]/30 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">👩🏻‍🍳</span>
+              <span id="slot2-player-name" class="font-extrabold text-sm text-[#1A1412]">Kosong</span>
+            </div>
+            <span id="slot2-you-badge" class="hidden px-2 py-0.5 rounded bg-[#1A1412] text-[#F5EBE1] text-[10px] font-extrabold">KAMU</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Swap Station & Test Live Connection Emotes -->
+      <div class="bg-[#EDE0D1] border-2 border-[#1A1412] rounded-xl p-3 mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <span class="text-xs font-extrabold uppercase text-[#3E251B]">👋 TES KONEKSI REAL-TIME (KLIK EMOTE UNTUK KIRIM KE LAYAR PASANGAN):</span>
+          <button onclick="GameApp.swapLobbyStation()" class="tactile-btn bg-white hover:bg-[#FFF3CD] px-2.5 py-1 text-xs font-extrabold">
+            🔄 Tukar Posisi Station
+          </button>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="GameApp.sendLobbyEmote('❤️ Sayang, aku udah di dalam room!')" class="tactile-btn bg-[#E63946] text-white px-3 py-1.5 text-xs font-extrabold">
+            ❤️ Sayang!
+          </button>
+          <button onclick="GameApp.sendLobbyEmote('🔪 Pisau udah tajam, siap potong!')" class="tactile-btn bg-[#2EC4B6] text-[#1A1412] px-3 py-1.5 text-xs font-extrabold">
+            🔪 Siap Masak!
+          </button>
+          <button onclick="GameApp.sendLobbyEmote('🍜 Pelanggan udah antre, ayo gas!')" class="tactile-btn bg-[#FFB800] text-[#1A1412] px-3 py-1.5 text-xs font-extrabold">
+            🍜 Ayo Gas!
+          </button>
+          <button onclick="GameApp.sendLobbyEmote('🔥 Kompor Wok siap ngebul!')" class="tactile-btn bg-[#FF6B35] text-white px-3 py-1.5 text-xs font-extrabold">
+            🔥 Wok Siap!
+          </button>
+        </div>
+      </div>
+
+      <!-- Start Game CTA -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div id="lobby-partner-hint" class="text-xs font-bold text-[#5C3A2E]">
+          💡 Begitu pasanganmu masuk, namanya akan langsung muncul di atas!
+        </div>
+        <button id="btn-launch-coop" onclick="GameApp.launchCoopShiftFromLobby()" 
+          class="tactile-btn w-full sm:w-auto px-6 py-3.5 bg-[#2EC4B6] hover:bg-[#25ab9e] text-[#1A1412] font-display font-bold text-base tracking-wide flex items-center justify-center gap-2">
+          <span>🚀 BUKA KEDAI & MULAI SHIFT!</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================
+       MODAL: CUSTOM FIREBASE / NETWORK SETTINGS
+       ========================================================= -->
+  <div id="network-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="tactile-card max-w-lg w-full p-5">
+      <div class="flex items-center justify-between border-b-2 border-[#1A1412] pb-3 mb-3">
+        <h3 class="font-display text-lg font-bold text-[#1A1412]">⚙️ PENGATURAN JARINGAN & CLOUD RELAY</h3>
+        <button onclick="GameApp.closeNetworkModal()" class="tactile-btn bg-[#E63946] text-white px-2.5 py-1 text-xs font-extrabold">✕</button>
+      </div>
+      <div class="space-y-3 text-xs text-[#3E251B]">
+        <div class="p-3 rounded-xl bg-[#E0F7F4] border-2 border-[#1A1412]">
+          <div class="font-extrabold text-[#1A1412] mb-1">✅ Default Multi-Relay (Otomatis Aktif Tanpa Setup):</div>
+          <p class="leading-relaxed">
+            Game ini sudah otomatis terhubung ke <b>MQTT over Secure WebSockets (EMQX / HiveMQ / Mosquitto WSS)</b> + <b>PeerJS WebRTC</b> + <b>BroadcastChannel</b>. Tembus NAT operator seluler (Telkomsel/Indosat/Wi-Fi kampus) langsung dari GitHub Pages!
+          </p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-[#FFF3CD] border-2 border-[#1A1412]">
+          <label class="block font-extrabold text-[#1A1412] mb-1">
+            🔥 Opsional: URL Firebase Realtime Database Pribadi
+          </label>
+          <p class="text-[11px] mb-2">
+            Jika kamu punya Firebase Realtime Database sendiri (mode <i>test rules</i>), tempel URL-nya di bawah untuk menambah jalur sinkronisasi ekstra:
+          </p>
+          <input id="custom-firebase-url-input" type="url" placeholder="https://nama-project-default-rtdb.asia-southeast1.firebasedatabase.app"
+            class="w-full px-3 py-2 rounded-lg bg-white border-2 border-[#1A1412] font-mono-ticket text-xs focus:outline-none" />
+          <div class="flex justify-end gap-2 mt-2.5">
+            <button onclick="GameApp.saveCustomFirebaseUrl()" class="tactile-btn bg-[#2EC4B6] text-[#1A1412] px-3 py-1.5 font-extrabold">
+              💾 Simpan & Hubungkan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
        SCREEN 2: ACTIVE KITCHEN GAMEPLAY
-       ========================================== -->
+       ========================================================= -->
   <div id="kitchen-screen" class="hidden min-h-screen w-full flex-col justify-between pb-4">
     
     <!-- 1. TOP DINER HEADER HUD -->
-    <header class="w-full bg-[#1C1614] border-b-3 border-[#F59E0B] px-2.5 sm:px-4 py-2 sticky top-0 z-30">
+    <header class="w-full bg-[#1A1412] border-b-3 border-[#FF6B35] px-2.5 sm:px-4 py-2 sticky top-0 z-30">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         
         <!-- Left: Back & Room Status -->
         <div class="flex items-center gap-2">
-          <button onclick="GameApp.confirmExitToLobby()" class="tactile-btn bg-[#FAF4E8] px-2.5 py-1 text-xs font-extrabold text-[#1C1614]">
+          <button onclick="GameApp.confirmExitToLobby()" class="tactile-btn bg-[#F5EBE1] px-2.5 py-1 text-xs font-extrabold text-[#1A1412]">
             ← Lobby
           </button>
-          <div class="flex items-center gap-1.5 bg-[#29201D] border-2 border-[#F59E0B] rounded-lg px-2.5 py-1 text-xs text-[#FAF4E8]">
+          <div class="flex items-center gap-1.5 bg-[#271E1B] border-2 border-[#FF6B35] rounded-lg px-2.5 py-1 text-xs text-[#F5EBE1]">
             <span id="hud-mode-icon">🏮</span>
             <span id="hud-room-label" class="font-mono-ticket font-bold">ROOM: SOLO</span>
-            <button id="copy-room-btn" onclick="GameApp.copyRoomCode()" class="hidden ml-1 px-1.5 py-0.5 bg-[#F59E0B] text-[#1C1614] rounded text-[10px] font-extrabold">
+            <button id="copy-room-btn" onclick="GameApp.copyRoomCode()" class="hidden ml-1 px-1.5 py-0.5 bg-[#FFB800] text-[#1A1412] rounded text-[10px] font-extrabold">
               Salin
             </button>
           </div>
-          <!-- Partner Status Pill -->
-          <div id="partner-status-pill" class="hidden sm:flex items-center gap-1.5 bg-[#2A9D8F]/20 border border-[#2A9D8F] text-[#FAF4E8] px-2.5 py-1 rounded-lg text-xs">
-            <span class="w-2 h-2 rounded-full bg-[#2A9D8F] animate-ping"></span>
-            <span id="partner-status-text" class="font-semibold">Partner Siap</span>
+          <!-- Partner Live Pill -->
+          <div id="partner-status-pill" class="hidden sm:flex items-center gap-1.5 bg-[#2EC4B6]/20 border border-[#2EC4B6] text-[#F5EBE1] px-2.5 py-1 rounded-lg text-xs">
+            <span id="partner-dot" class="w-2 h-2 rounded-full bg-[#2EC4B6] animate-ping"></span>
+            <span id="partner-status-text" class="font-semibold">Partner Terhubung</span>
           </div>
         </div>
 
         <!-- Center: Shift Timer, Score/Coins, Combo, Plates -->
         <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Shift Timer -->
-          <div class="bg-[#FAF4E8] border-2 border-[#1C1614] rounded-lg px-2.5 py-1 flex items-center gap-1.5">
+          <div class="bg-[#F5EBE1] border-2 border-[#1A1412] rounded-lg px-2.5 py-1 flex items-center gap-1.5">
             <span class="text-xs">⏱️</span>
-            <span id="hud-timer" class="font-mono-ticket font-extrabold text-sm sm:text-base text-[#1C1614]">03:00</span>
+            <span id="hud-timer" class="font-mono-ticket font-extrabold text-sm sm:text-base text-[#1A1412]">03:00</span>
           </div>
 
-          <!-- Coins -->
-          <div class="bg-[#FEF3C7] border-2 border-[#1C1614] rounded-lg px-2.5 py-1 flex items-center gap-1">
+          <div class="bg-[#FFF3CD] border-2 border-[#1A1412] rounded-lg px-2.5 py-1 flex items-center gap-1">
             <span class="text-xs">💰</span>
             <span id="hud-coins" class="font-mono-ticket font-extrabold text-sm sm:text-base text-[#E63946]">0</span>
           </div>
 
-          <!-- Combo Badge -->
-          <div id="hud-combo-box" class="bg-[#E63946] text-white border-2 border-[#1C1614] rounded-lg px-2 py-1 flex items-center gap-1">
+          <div class="bg-[#FF6B35] text-white border-2 border-[#1A1412] rounded-lg px-2 py-1 flex items-center gap-1">
             <span class="text-xs">🔥</span>
             <span id="hud-combo" class="font-mono-ticket font-extrabold text-xs sm:text-sm">x1</span>
           </div>
 
-          <!-- Clean Plates Counter -->
-          <div class="bg-[#E6F4F1] border-2 border-[#1C1614] rounded-lg px-2.5 py-1 flex items-center gap-1" title="Piring Bersih Tersedia">
+          <div class="bg-[#E0F7F4] border-2 border-[#1A1412] rounded-lg px-2.5 py-1 flex items-center gap-1" title="Piring Bersih Tersedia">
             <span class="text-xs">🍽️</span>
-            <span id="hud-clean-plates" class="font-mono-ticket font-extrabold text-xs sm:text-sm text-[#1C1614]">4/4</span>
+            <span id="hud-clean-plates" class="font-mono-ticket font-extrabold text-xs sm:text-sm text-[#1A1412]">4/4</span>
           </div>
         </div>
 
         <!-- Right: Utility Buttons -->
         <div class="flex items-center gap-1.5">
-          <button onclick="GameApp.openRecipeModal()" class="tactile-btn bg-[#F59E0B] text-[#1C1614] px-2.5 py-1 text-xs font-extrabold flex items-center gap-1">
+          <button onclick="GameApp.openRecipeModal()" class="tactile-btn bg-[#FFB800] text-[#1A1412] px-2.5 py-1 text-xs font-extrabold flex items-center gap-1">
             <span>📖</span><span class="hidden sm:inline">Resep</span>
           </button>
-          <button onclick="GameApp.openShopModal()" class="tactile-btn bg-[#FAF4E8] text-[#1C1614] px-2.5 py-1 text-xs font-extrabold flex items-center gap-1">
+          <button onclick="GameApp.openShopModal()" class="tactile-btn bg-[#F5EBE1] text-[#1A1412] px-2.5 py-1 text-xs font-extrabold flex items-center gap-1">
             <span>🛒</span><span class="hidden sm:inline">Upgrade</span>
           </button>
-          <button onclick="AudioEngine.toggleMute()" id="hud-sound-btn" class="tactile-btn bg-[#FAF4E8] text-[#1C1614] px-2 py-1 text-xs font-extrabold">
+          <button onclick="AudioEngine.toggleMute()" id="hud-sound-btn" class="tactile-btn bg-[#F5EBE1] text-[#1A1412] px-2 py-1 text-xs font-extrabold">
             🔊
           </button>
         </div>
@@ -463,48 +638,46 @@
 
       <!-- 2. HANGING ORDER TICKETS RAIL (BON PESANAN PELANGGAN) -->
       <section class="w-full">
-        <!-- Stainless Steel Ticket Rail Header -->
-        <div class="bg-gradient-to-b from-[#D6D3CD] to-[#B8B4AC] border-3 border-[#1C1614] rounded-t-xl px-3 py-1.5 flex items-center justify-between shadow-sm">
+        <div class="bg-gradient-to-b from-[#D5D1C8] to-[#B8B3A8] border-3 border-[#1A1412] rounded-t-xl px-3 py-1.5 flex items-center justify-between shadow-sm">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-extrabold uppercase tracking-wider text-[#1C1614]">🧾 REL BON PESANAN PELANGGAN</span>
-            <span id="active-orders-count" class="px-2 py-0.5 rounded-full bg-[#1C1614] text-[#FAF4E8] font-mono-ticket text-[10px] font-bold">0/4</span>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-[#1A1412]">🧾 REL BON PESANAN PELANGGAN</span>
+            <span id="active-orders-count" class="px-2 py-0.5 rounded-full bg-[#1A1412] text-[#F5EBE1] font-mono-ticket text-[10px] font-bold">0/4</span>
           </div>
-          <div class="text-[11px] font-bold text-[#43281C] hidden sm:block">
+          <div class="text-[11px] font-bold text-[#3E251B] hidden sm:block">
             Klik bon untuk sorot resep • Kasih 🍹 Es Teh kalau pelanggan hampir marah!
           </div>
         </div>
 
-        <!-- Tickets Grid -->
-        <div id="orders-rail" class="bg-[#29201D] border-x-3 border-b-3 border-[#1C1614] rounded-b-xl p-2.5 grid grid-cols-2 lg:grid-cols-4 gap-2.5 min-h-[126px]">
-          <!-- Populated dynamically by JS -->
+        <div id="orders-rail" class="bg-[#271E1B] border-x-3 border-b-3 border-[#1A1412] rounded-b-xl p-2.5 grid grid-cols-2 lg:grid-cols-4 gap-2.5 min-h-[124px]">
+          <!-- Rendered by JS -->
         </div>
       </section>
 
-      <!-- 3. THE SHARED PASS COUNTER ("MEJA OPER TENGAH") & COUPLE PING BAR -->
+      <!-- 3. SHARED PASS-THROUGH COUNTER ("MEJA OPER TENGAH" - 4 SLOTS) & COUPLE PINGS -->
       <section class="tactile-wood p-2.5 sm:p-3">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-md bg-[#F59E0B] border-2 border-[#1C1614] font-display font-bold text-xs sm:text-sm text-[#1C1614]">
-              🤝 MEJA OPER TENGAH (SHARED COUNTER)
+            <span class="px-2.5 py-0.5 rounded-md bg-[#FFB800] border-2 border-[#1A1412] font-display font-bold text-xs sm:text-sm text-[#1A1412]">
+              🤝 MEJA OPER TENGAH (4 SLOT BERSAMA)
             </span>
-            <span class="text-xs font-semibold text-[#FAF4E8] hidden md:inline">
-              Station 1 taruh potongan bahan di sini ➔ Station 2 klik untuk masak di Wok atau taruh ke Piring!
+            <span class="text-xs font-semibold text-[#F5EBE1] hidden md:inline">
+              Station 1 taruh bahan siap masak/teh di sini ➔ Station 2 klik untuk masukkan ke Wok atau Piring!
             </span>
           </div>
 
-          <!-- Quick Couple Communication Pings -->
+          <!-- Instant Couple Quick-Ping Buttons -->
           <div class="flex items-center gap-1 flex-wrap">
-            <span class="text-[11px] font-bold text-[#FEF3C7] mr-1">Ping Pasangan:</span>
-            <button onclick="GameApp.sendPing('🔪 Butuh Ayam Potong!', 'amber')" class="tactile-btn bg-[#FAF4E8] hover:bg-[#FEF3C7] px-2 py-0.5 text-[11px] font-extrabold">
+            <span class="text-[11px] font-bold text-[#FFF3CD] mr-1">Ping Pasangan:</span>
+            <button onclick="GameApp.sendPing('🍗 Butuh Ayam Potong!', 'amber')" class="tactile-btn bg-[#F5EBE1] hover:bg-[#FFF3CD] px-2 py-0.5 text-[11px] font-extrabold">
               🍗 Butuh Ayam!
             </button>
-            <button onclick="GameApp.sendPing('🌶️ Butuh Bumbu Rajang!', 'amber')" class="tactile-btn bg-[#FAF4E8] hover:bg-[#FEF3C7] px-2 py-0.5 text-[11px] font-extrabold">
-              🌶️ Butuh Bumbu!
+            <button onclick="GameApp.sendPing('🥬 Butuh Sayur & Bumbu!', 'amber')" class="tactile-btn bg-[#F5EBE1] hover:bg-[#FFF3CD] px-2 py-0.5 text-[11px] font-extrabold">
+              🥬 Butuh Sayur!
             </button>
-            <button onclick="GameApp.sendPing('🍽️ Piring Bersih Habis! Tolong Cuci!', 'red')" class="tactile-btn bg-[#FAF4E8] hover:bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-extrabold">
+            <button onclick="GameApp.sendPing('🍽️ Piring Bersih Habis! Tolong Cuci!', 'red')" class="tactile-btn bg-[#F5EBE1] hover:bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-extrabold">
               🍽️ Cuci Piring!
             </button>
-            <button onclick="GameApp.sendPing('🔥 Awas Kompor Gosong!', 'red')" class="tactile-btn bg-[#FAF4E8] hover:bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-extrabold">
+            <button onclick="GameApp.sendPing('🔥 Awas Kompor Wok Gosong!', 'red')" class="tactile-btn bg-[#F5EBE1] hover:bg-[#FEE2E2] px-2 py-0.5 text-[11px] font-extrabold">
               🔥 Awas Gosong!
             </button>
             <button onclick="GameApp.sendPing('❤️ Semangat Sayang! Kita Kompak Banget!', 'green')" class="tactile-btn bg-[#E63946] text-white px-2 py-0.5 text-[11px] font-extrabold">
@@ -513,26 +686,26 @@
           </div>
         </div>
 
-        <!-- 5 Pass Counter Slots -->
-        <div id="pass-counter-slots" class="grid grid-cols-5 gap-2">
+        <!-- 4 Shared Pass Counter Slots -->
+        <div id="pass-counter-slots" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <!-- Rendered by JS -->
         </div>
       </section>
 
-      <!-- 4. STATION VIEW SWITCHER TABS (FOR MOBILE & DESKTOP FLEXIBILITY) -->
-      <div class="flex items-center justify-between gap-2 bg-[#29201D] p-1.5 rounded-xl border-2 border-[#1C1614]">
+      <!-- 4. STATION VIEW SWITCHER TABS -->
+      <div class="flex items-center justify-between gap-2 bg-[#271E1B] p-1.5 rounded-xl border-2 border-[#1A1412]">
         <div class="grid grid-cols-3 gap-1.5 w-full">
           <button id="tab-btn-station1" onclick="GameApp.setViewMode('station1')" 
-            class="tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#2A9D8F] text-white">
+            class="tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#2EC4B6] text-[#1A1412]">
             <span>🔪 STATION 1: POTONG & CUCI</span>
           </button>
           <button id="tab-btn-station2" onclick="GameApp.setViewMode('station2')" 
-            class="tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#FAF4E8] text-[#1C1614]">
-            <span>🔥 STATION 2: KOMPOR & SAJI</span>
+            class="tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#F5EBE1] text-[#1A1412]">
+            <span>🔥 STATION 2: WOK & PLATING</span>
           </button>
           <button id="tab-btn-split" onclick="GameApp.setViewMode('split')" 
-            class="tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#FAF4E8] text-[#1C1614]">
-            <span>🖥️ TAMPILKAN KEDUA MEJA</span>
+            class="tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#F5EBE1] text-[#1A1412]">
+            <span>🖥️ SPLIT-SCREEN (2 MEJA)</span>
           </button>
         </div>
       </div>
@@ -544,41 +717,40 @@
              STATION 1: MEJA POTONG, BAHAN MENTAH & WASTAFEL
              ================================================== -->
         <section id="station-1-panel" class="tactile-card p-3.5 sm:p-4 flex flex-col gap-3.5 relative">
-          <!-- Station 1 Header -->
-          <div class="flex items-center justify-between border-b-2 border-[#1C1614] pb-2">
+          <div class="flex items-center justify-between border-b-2 border-[#1A1412] pb-2">
             <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-[#2A9D8F] text-white border-2 border-[#1C1614] flex items-center justify-center font-bold text-base">🔪</span>
+              <span class="w-8 h-8 rounded-lg bg-[#2EC4B6] text-[#1A1412] border-2 border-[#1A1412] flex items-center justify-center font-bold text-base">🔪</span>
               <div>
-                <h2 class="font-display font-bold text-base sm:text-lg text-[#1C1614] leading-none">
-                  STATION 1: MEJA POTONG & CUCI
+                <h2 class="font-display font-bold text-base sm:text-lg text-[#1A1412] leading-none">
+                  STATION 1: MEJA POTONG & WASTAFEL
                 </h2>
                 <p class="text-[11px] font-semibold text-[#5C3A2E] mt-0.5">
-                  Siapkan bahan mentah, potong di talenan, oper ke tengah & cuci piring kotor
+                  Ambil bahan mentah, potong di talenan, oper ke tengah, cuci piring & seduh Es Teh
                 </p>
               </div>
             </div>
-            <span id="station1-role-badge" class="px-2 py-0.5 rounded bg-[#E6F4F1] border border-[#1C1614] text-[11px] font-extrabold text-[#1C1614]">
-              Meja Prep
+            <span class="px-2 py-0.5 rounded bg-[#E0F7F4] border border-[#1A1412] text-[11px] font-extrabold text-[#1A1412]">
+              Prep & Sink
             </span>
           </div>
 
           <!-- A. INGREDIENT CRATES (PETI BAHAN SEGAR) -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-extrabold uppercase tracking-wider text-[#43281C]">📦 PETI BAHAN MENTAH (KLIK UNTUK AMBIL):</span>
-              <span class="text-[11px] font-semibold text-[#2A9D8F]">Stok Tak Terbatas</span>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-[#3E251B]">📦 PETI BAHAN MENTAH (KLIK UNTUK AMBIL):</span>
+              <span class="text-[11px] font-semibold text-[#2EC4B6]">Stok Selalu Tersedia</span>
             </div>
-            <div id="ingredient-crates-grid" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 xl:grid-cols-6 gap-2">
-              <!-- Populated by JS with custom SVGs -->
+            <div id="ingredient-crates-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <!-- Populated by JS -->
             </div>
           </div>
 
           <!-- B. CHOPPING BOARD (TALENAN KAYU INTERAKTIF) -->
-          <div id="chopping-board-box" class="bg-[#F3E9D2] border-3 border-[#1C1614] rounded-xl p-3 shadow-[3px_3px_0px_#1C1614]">
+          <div class="bg-[#EDE0D1] border-3 border-[#1A1412] rounded-xl p-3 shadow-[3px_3px_0px_#1A1412]">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-extrabold uppercase text-[#43281C] flex items-center gap-1.5">
+              <span class="text-xs font-extrabold uppercase text-[#3E251B] flex items-center gap-1.5">
                 <span>🪵 TALENAN KAYU POTONG</span>
-                <span id="knife-upgrade-badge" class="hidden px-1.5 py-0.5 rounded bg-[#F59E0B] text-[#1C1614] text-[10px] font-extrabold border border-[#1C1614]">⚡ Pisau Jepang (2x Tap)</span>
+                <span id="knife-upgrade-badge" class="hidden px-1.5 py-0.5 rounded bg-[#FFB800] text-[#1A1412] text-[10px] font-extrabold border border-[#1A1412]">⚡ Pisau Jepang (2x Tap)</span>
               </span>
               <button onclick="GameApp.clearChoppingBoard()" class="text-[11px] font-bold text-[#E63946] hover:underline">
                 🗑️ Bersihkan Talenan
@@ -586,23 +758,21 @@
             </div>
 
             <div class="flex flex-col sm:flex-row items-center gap-3">
-              <!-- Wooden Board Visual Slot -->
-              <div id="chopping-slot-visual" class="w-full sm:w-1/2 h-28 rounded-xl bg-[#D8B384] border-3 border-[#1C1614] shadow-inner flex flex-col items-center justify-center p-2 relative overflow-hidden">
+              <div id="chopping-slot-visual" class="w-full sm:w-1/2 h-28 rounded-xl bg-[#D8B384] border-3 border-[#1A1412] shadow-inner flex flex-col items-center justify-center p-2 relative overflow-hidden">
                 <!-- Rendered by JS -->
               </div>
 
-              <!-- Chop Action Button & Progress -->
               <div class="w-full sm:w-1/2 flex flex-col gap-2">
-                <div class="w-full bg-white h-5 rounded-lg border-2 border-[#1C1614] overflow-hidden p-0.5">
-                  <div id="chop-progress-bar" class="h-full bg-[#2A9D8F] rounded transition-all duration-150" style="width: 0%"></div>
+                <div class="w-full bg-white h-5 rounded-lg border-2 border-[#1A1412] overflow-hidden p-0.5">
+                  <div id="chop-progress-bar" class="h-full bg-[#2EC4B6] rounded transition-all duration-150" style="width: 0%"></div>
                 </div>
                 <div class="flex gap-2">
                   <button id="btn-chop-action" onclick="GameApp.chopIngredient()" disabled
-                    class="tactile-btn flex-1 py-3 bg-[#E63946] text-white font-display font-bold text-sm sm:text-base flex items-center justify-center gap-1.5">
+                    class="tactile-btn flex-1 py-3 bg-[#FF6B35] text-white font-display font-bold text-sm sm:text-base flex items-center justify-center gap-1.5">
                     <span>🔪 POTONG!</span>
                   </button>
                   <button id="btn-pass-chopped" onclick="GameApp.passFromBoard()" disabled
-                    class="tactile-btn px-3 py-3 bg-[#F59E0B] text-[#1C1614] font-display font-bold text-xs sm:text-sm">
+                    class="tactile-btn px-3 py-3 bg-[#FFB800] text-[#1A1412] font-display font-bold text-xs sm:text-sm">
                     Oper ➔
                   </button>
                 </div>
@@ -610,56 +780,60 @@
             </div>
           </div>
 
-          <!-- C. SINK (WASTAFEL CUCI PIRING) & ES TEH DISPENSER -->
+          <!-- C. SINK (WASTAFEL CUCI PIRING) & ES TEH MANIS DISPENSER -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             
             <!-- Wastafel Cuci Piring -->
             <div class="tactile-steel p-3 flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-extrabold uppercase text-[#1C1614]">🚰 WASTAFEL PIRING</span>
+                  <span class="text-xs font-extrabold uppercase text-[#1A1412]">🚰 WASTAFEL PIRING</span>
                   <span id="sink-dirty-badge" class="px-2 py-0.5 rounded bg-[#E63946] text-white font-mono-ticket text-[11px] font-bold">
                     Kotor: 0
                   </span>
                 </div>
-                <p class="text-[11px] text-[#43281C] mt-1">
-                  Piring bekas makan pelanggan bakal numpuk di sini. Cuci biar Station 2 bisa sajikan makanan!
+                <p class="text-[11px] text-[#3E251B] mt-1">
+                  Piring kotor kembali 4 detik setelah pelanggan makan. Cuci agar Station 2 tidak kehabisan piring!
                 </p>
               </div>
 
               <div class="mt-2.5 flex items-center justify-between gap-2">
-                <div class="text-xs font-extrabold text-[#1C1614] bg-white/80 px-2.5 py-1.5 rounded-lg border-2 border-[#1C1614]">
-                  ✨ Bersih: <span id="sink-clean-count" class="font-mono-ticket text-[#2A9D8F]">4</span>
+                <div class="text-xs font-extrabold text-[#1A1412] bg-white/80 px-2.5 py-1.5 rounded-lg border-2 border-[#1A1412]">
+                  ✨ Bersih: <span id="sink-clean-count" class="font-mono-ticket text-[#2EC4B6]">4</span>
                 </div>
                 <button id="btn-wash-plate" onclick="GameApp.washDirtyPlate()" 
-                  class="tactile-btn flex-1 py-2 px-3 bg-[#2A9D8F] text-white font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1">
+                  class="tactile-btn flex-1 py-2 px-3 bg-[#2EC4B6] text-[#1A1412] font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1">
                   <span>🧽 CUCI PIRING</span>
                 </button>
               </div>
             </div>
 
             <!-- Dispenser Es Teh Manis -->
-            <div class="bg-[#FEF3C7] border-3 border-[#1C1614] rounded-xl p-3 shadow-[3px_3px_0px_#1C1614] flex flex-col justify-between">
+            <div class="bg-[#FFF3CD] border-3 border-[#1A1412] rounded-xl p-3 shadow-[3px_3px_0px_#1A1412] flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-extrabold uppercase text-[#1C1614]">🧊 ES TEH MANIS</span>
-                  <span id="tea-status-badge" class="px-2 py-0.5 rounded bg-[#F59E0B] text-[#1C1614] font-mono-ticket text-[11px] font-bold border border-[#1C1614]">
+                  <span class="text-xs font-extrabold uppercase text-[#1A1412]">🧊 DISPENSER ES TEH</span>
+                  <span id="tea-status-badge" class="px-2 py-0.5 rounded bg-[#FFB800] text-[#1A1412] font-mono-ticket text-[11px] font-bold border border-[#1A1412]">
                     Kosong
                   </span>
                 </div>
                 <p class="text-[11px] text-[#5C3A2E] mt-1">
-                  Tuang Es Teh lalu kasih ke pelanggan yang hampir marah (+35% Kesabaran & Tip +15 Koin)!
+                  Tuang <b>🍹 Es Teh Manis</b> untuk dioper ke Meja Tengah (menu pesanan) atau langsung kasih ke pelanggan!
                 </p>
               </div>
 
-              <div class="mt-2.5 flex gap-2">
+              <div class="mt-2.5 grid grid-cols-3 gap-1.5">
                 <button id="btn-pour-tea" onclick="GameApp.pourSweetTea()" 
-                  class="tactile-btn flex-1 py-2 px-2 bg-[#F59E0B] text-[#1C1614] font-display font-bold text-xs">
-                  🚰 Tuang Teh
+                  class="tactile-btn py-2 px-1.5 bg-[#FFB800] text-[#1A1412] font-display font-bold text-[11px]">
+                  🚰 Seduh
                 </button>
-                <button id="btn-serve-tea" onclick="GameApp.serveSweetTea()" disabled
-                  class="tactile-btn flex-1 py-2 px-2 bg-[#2A9D8F] text-white font-display font-bold text-xs">
-                  🍹 Kasih Pelanggan
+                <button id="btn-pass-tea" onclick="GameApp.passSweetTeaToCounter()" disabled
+                  class="tactile-btn py-2 px-1.5 bg-[#FF6B35] text-white font-display font-bold text-[11px]">
+                  🤝 Oper
+                </button>
+                <button id="btn-serve-tea" onclick="GameApp.serveSweetTeaTip()" disabled
+                  class="tactile-btn py-2 px-1.5 bg-[#2EC4B6] text-[#1A1412] font-display font-bold text-[11px]" title="Tambah kesabaran pelanggan + Tip 15 Koin">
+                  🍹 Kasih
                 </button>
               </div>
             </div>
@@ -671,95 +845,93 @@
              STATION 2: MEJA KOMPOR WOK, PLATING & ANTAR PESANAN
              ================================================== -->
         <section id="station-2-panel" class="tactile-card p-3.5 sm:p-4 flex flex-col gap-3.5 relative">
-          <!-- Station 2 Header -->
-          <div class="flex items-center justify-between border-b-2 border-[#1C1614] pb-2">
+          <div class="flex items-center justify-between border-b-2 border-[#1A1412] pb-2">
             <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-[#E63946] text-white border-2 border-[#1C1614] flex items-center justify-center font-bold text-base">🔥</span>
+              <span class="w-8 h-8 rounded-lg bg-[#FF6B35] text-white border-2 border-[#1A1412] flex items-center justify-center font-bold text-base">🔥</span>
               <div>
-                <h2 class="font-display font-bold text-base sm:text-lg text-[#1C1614] leading-none">
-                  STATION 2: MEJA KOMPOR & SAJI
+                <h2 class="font-display font-bold text-base sm:text-lg text-[#1A1412] leading-none">
+                  STATION 2: MEJA KOMPOR WOK & SAJI
                 </h2>
                 <p class="text-[11px] font-semibold text-[#5C3A2E] mt-0.5">
-                  Ambil bahan dari Meja Oper, masak di Wok sampai Hijau, susun di Piring & Antar!
+                  Ambil bahan dari Meja Oper, masak di Wok sampai HIJAU, rakit di Piring & tekan Bel Antar!
                 </p>
               </div>
             </div>
-            <span id="station2-role-badge" class="px-2 py-0.5 rounded bg-[#FEE2E2] border border-[#1C1614] text-[11px] font-extrabold text-[#1C1614]">
-              Meja Wok
+            <span class="px-2 py-0.5 rounded bg-[#FFE8D6] border border-[#1A1412] text-[11px] font-extrabold text-[#1A1412]">
+              Wok & Plating
             </span>
           </div>
 
-          <!-- A. TWO INTERACTIVE STOVES (WOK BAJA 1 & PANCI/WOK 2) -->
+          <!-- A. TWO INTERACTIVE WOK STOVES -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-extrabold uppercase tracking-wider text-[#43281C]">🔥 DUA TUNGKU KOMPOR UTAMA:</span>
-              <span class="text-[11px] font-semibold text-[#E63946]">Angkat saat bar HIJAU (70-100%)!</span>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-[#3E251B]">🔥 DUA TUNGKU WOK BAJA:</span>
+              <span class="text-[11px] font-semibold text-[#E63946]">Kuning = Masak • Hijau = Matang • Merah = Gosong!</span>
             </div>
 
             <div id="stoves-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <!-- Stove 0 and Stove 1 rendered by JS -->
+              <!-- Rendered by JS -->
             </div>
           </div>
 
-          <!-- B. PLATING AREA (MEJA RAKIT PIRING SAJI) -->
-          <div class="bg-[#F3E9D2] border-3 border-[#1C1614] rounded-xl p-3 shadow-[3px_3px_0px_#1C1614]">
+          <!-- B. PLATING & ASSEMBLY AREA -->
+          <div class="bg-[#EDE0D1] border-3 border-[#1A1412] rounded-xl p-3 shadow-[3px_3px_0px_#1A1412]">
             <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-extrabold uppercase text-[#1C1614]">🍽️ PIRING SAJI (PLATING AREA)</span>
-                <span id="plate-clean-indicator" class="px-2 py-0.5 rounded bg-[#2A9D8F] text-white text-[10px] font-extrabold border border-[#1C1614]">
+                <span class="text-xs font-extrabold uppercase text-[#1A1412]">🍽️ PIRING SAJI (ASSEMBLY AREA)</span>
+                <span id="plate-clean-indicator" class="px-2 py-0.5 rounded bg-[#2EC4B6] text-[#1A1412] text-[10px] font-extrabold border border-[#1A1412]">
                   Piring Siap
                 </span>
               </div>
               <button onclick="GameApp.clearPlatingDish()" class="text-[11px] font-bold text-[#E63946] hover:underline">
-                🗑️ Buang Isi Piring
+                🗑️ Buang ke Tempat Sampah
               </button>
             </div>
 
-            <!-- Plate Visual & Matched Recipe Indicator -->
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <!-- Plate Items Slots (7 cols) -->
-              <div class="sm:col-span-7 bg-[#FAF4E8] border-3 border-[#1C1614] rounded-2xl p-2.5 min-h-[96px] flex flex-col justify-between">
+              <!-- Plate Visual Slots -->
+              <div class="sm:col-span-7 bg-[#F5EBE1] border-3 border-[#1A1412] rounded-2xl p-2.5 min-h-[98px] flex flex-col justify-between">
                 <div id="plate-items-list" class="flex items-center justify-center gap-2 flex-wrap my-auto">
                   <!-- Rendered by JS -->
                 </div>
-                <div id="plate-recipe-match-label" class="text-center text-xs font-extrabold py-1 rounded bg-[#F3E9D2] text-[#5C3A2E] border border-[#1C1614]/20 mt-1.5">
+                <div id="plate-recipe-match-label" class="text-center text-xs font-extrabold py-1 rounded bg-[#EDE0D1] text-[#5C3A2E] border border-[#1A1412]/20 mt-1.5">
                   Belum ada bahan di atas piring
                 </div>
               </div>
 
-              <!-- Serve Bell Button (5 cols) -->
+              <!-- Service Bell Button -->
               <div class="sm:col-span-5 flex flex-col gap-2">
                 <button id="btn-serve-order" onclick="GameApp.servePlatedDish()" 
-                  class="tactile-btn w-full py-4 px-3 bg-[#2A9D8F] hover:bg-[#21867a] text-white font-display font-bold text-base sm:text-lg flex flex-col items-center justify-center gap-0.5 shadow-[4px_4px_0px_#1C1614]">
+                  class="tactile-btn w-full py-4 px-3 bg-[#2EC4B6] hover:bg-[#25ab9e] text-[#1A1412] font-display font-bold text-base sm:text-lg flex flex-col items-center justify-center gap-0.5 shadow-[4px_4px_0px_#1A1412]">
                   <span>🛎️ ANTAR PESANAN!</span>
-                  <span id="serve-btn-subtext" class="text-[11px] font-sans font-semibold text-[#E6F4F1]">Susun bahan sesuai bon</span>
+                  <span id="serve-btn-subtext" class="text-[11px] font-sans font-bold text-[#1A1412]/80">Susun bahan sesuai bon</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- C. MINI PINNED RECIPE CHEAT SHEET (PANDUAN CEPAT RESEP) -->
-          <div class="bg-[#FAF4E8] border-2 border-[#1C1614] rounded-xl p-2.5">
-            <div class="text-[11px] font-extrabold uppercase text-[#5C3A2E] mb-1.5 flex items-center justify-between">
-              <span>📌 CONTEKAN CEPAT 4 MENU KEDAI (SEMUA LAUK HARUS MATANG):</span>
-              <span class="text-[10px] text-[#E63946] font-bold">🍚 Nasi langsung taruh ke Piring!</span>
+          <!-- C. PINNED RECIPE CHEAT SHEET (4 MENU UTAMA) -->
+          <div class="bg-[#F5EBE1] border-2 border-[#1A1412] rounded-xl p-2.5">
+            <div class="text-[11px] font-extrabold uppercase text-[#3E251B] mb-1.5 flex items-center justify-between">
+              <span>📌 CONTEKAN 4 MENU KEDAI (MASAK DI WOK SAMPAI HIJAU 🔥):</span>
+              <span class="text-[10px] text-[#FF6B35] font-extrabold">🍹 Es Teh langsung ke Piring!</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
-              <div class="p-1.5 rounded bg-[#F3E9D2] border border-[#1C1614]/30 flex items-center justify-between">
-                <span class="font-extrabold text-[#1C1614]">🍛 Nasi Ayam Cabai:</span>
-                <span class="font-semibold text-[#43281C]">🍚Nasi + 🍗Ayam🔥 + 🌶️Bumbu🔥</span>
+              <div class="p-1.5 rounded bg-[#EDE0D1] border border-[#1A1412]/30 flex items-center justify-between">
+                <span class="font-extrabold text-[#1A1412]">🍛 Nasi Goreng Spesial:</span>
+                <span class="font-bold text-[#3E251B]">🍚Nasi🔥 + 🍗Ayam🔥 + 🥬Sayur🔥</span>
               </div>
-              <div class="p-1.5 rounded bg-[#F3E9D2] border border-[#1C1614]/30 flex items-center justify-between">
-                <span class="font-extrabold text-[#1C1614]">🍜 Mie Kuah Spesial:</span>
-                <span class="font-semibold text-[#43281C]">🍜Mie🔥 + 🍗Ayam🔥 + 🥬Sayur🔥</span>
+              <div class="p-1.5 rounded bg-[#EDE0D1] border border-[#1A1412]/30 flex items-center justify-between">
+                <span class="font-extrabold text-[#1A1412]">🍗 Ayam Panggang Madu:</span>
+                <span class="font-bold text-[#3E251B]">🍗Ayam🔥 + 🥬Sayur🔥</span>
               </div>
-              <div class="p-1.5 rounded bg-[#F3E9D2] border border-[#1C1614]/30 flex items-center justify-between">
-                <span class="font-extrabold text-[#1C1614]">🍳 Nasi Telur Pontianak:</span>
-                <span class="font-semibold text-[#43281C]">🍚Nasi + 🥚Telur🔥 + 🌶️Bumbu🔥</span>
+              <div class="p-1.5 rounded bg-[#EDE0D1] border border-[#1A1412]/30 flex items-center justify-between">
+                <span class="font-extrabold text-[#1A1412]">🍜 Mie Kuah Kaldu:</span>
+                <span class="font-bold text-[#3E251B]">🍜Mie🔥 + 🍗Ayam🔥 + 🥬Sayur🔥</span>
               </div>
-              <div class="p-1.5 rounded bg-[#F3E9D2] border border-[#1C1614]/30 flex items-center justify-between">
-                <span class="font-extrabold text-[#1C1614]">🍗 Ayam Goreng Spesial:</span>
-                <span class="font-semibold text-[#43281C]">🍗Ayam🔥 + 🌶️Bumbu🔥</span>
+              <div class="p-1.5 rounded bg-[#EDE0D1] border border-[#1A1412]/30 flex items-center justify-between">
+                <span class="font-extrabold text-[#1A1412]">🍹 Es Teh Manis Segar:</span>
+                <span class="font-bold text-[#3E251B]">🍹Es Teh (Oper dari Dispenser)</span>
               </div>
             </div>
           </div>
@@ -771,119 +943,113 @@
     </main>
   </div>
 
-  <!-- ==========================================
-       MODAL 1: BUKU RESEP & PANDUAN LENGKAP
-       ========================================== -->
+  <!-- =========================================================
+       MODAL: BUKU RESEP & PANDUAN LENGKAP
+       ========================================================= -->
   <div id="recipe-modal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
     <div class="tactile-card max-w-lg w-full p-5 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b-2 border-[#1C1614] pb-3 mb-4">
-        <h3 class="font-display text-xl font-bold text-[#1C1614]">📖 BUKU RESEP KEDAI TENGAH MALAM</h3>
+      <div class="flex items-center justify-between border-b-2 border-[#1A1412] pb-3 mb-4">
+        <h3 class="font-display text-xl font-bold text-[#1A1412]">📖 BUKU RESEP KEDAI TENGAH MALAM</h3>
         <button onclick="GameApp.closeRecipeModal()" class="tactile-btn bg-[#E63946] text-white px-3 py-1 text-xs font-extrabold">Tutup ✕</button>
       </div>
 
       <div class="space-y-3 text-xs">
-        <div class="p-3 rounded-xl bg-[#FEF3C7] border-2 border-[#1C1614]">
-          <div class="font-extrabold text-sm text-[#1C1614] mb-1">💡 Alur Bahan Makanan:</div>
-          <ul class="list-disc pl-4 space-y-1 text-[#43281C]">
-            <li><b>🍗 Ayam Fillet, 🌶️ Cabai Bawang, 🥬 Sayur Sawi:</b> Harus <b>dipotong dulu</b> di Talenan (Station 1) ➔ Oper ke Meja Tengah ➔ <b>Dimasak di Kompor</b> (Station 2) ➔ Taruh ke Piring Saji.</li>
-            <li><b>🍜 Mie Telur & 🥚 Telur Segar:</b> Tidak perlu dipotong! Langsung oper ke Meja Tengah ➔ <b>Dimasak di Kompor</b> ➔ Taruh ke Piring Saji.</li>
-            <li><b>🍚 Nasi Putih:</b> Sudah matang dari penanak nasi! Bisa langsung dioper dan ditaruh ke Piring Saji tanpa masuk kompor.</li>
+        <div class="p-3 rounded-xl bg-[#FFF3CD] border-2 border-[#1A1412]">
+          <div class="font-extrabold text-sm text-[#1A1412] mb-1">💡 Alur Bahan Makanan (Station 1 ➔ Station 2):</div>
+          <ul class="list-disc pl-4 space-y-1 text-[#3E251B]">
+            <li><b>🍗 Ayam Fillet, 🍚 Nasi Putih, 🍜 Mie Telur, 🥬 Sayur & Bumbu:</b> Ambil dari peti (Station 1) ➔ <b>Potong/Siapkan di Talenan</b> ➔ Oper ke Meja Tengah ➔ <b>Masak di Kompor Wok</b> (Station 2) sampai HIJAU ➔ Angkat ke Piring Saji.</li>
+            <li><b>🍹 Es Teh Manis:</b> Seduh di Dispenser Es Teh (Station 1) ➔ Bisa langsung <b>Dioper ke Meja Tengah</b> untuk disajikan di Piring Saji (jika ada bon pesanan Es Teh), ATAU klik <b>Kasih</b> untuk menenangkan pelanggan yang hampir marah!</li>
           </ul>
         </div>
 
         <div class="grid grid-cols-1 gap-2.5">
-          <div class="p-3 rounded-xl bg-[#F3E9D2] border-2 border-[#1C1614] flex justify-between items-center">
+          <div class="p-3 rounded-xl bg-[#EDE0D1] border-2 border-[#1A1412] flex justify-between items-center">
             <div>
-              <div class="font-display font-bold text-sm text-[#1C1614]">1. 🍛 Nasi Ayam Cabai Garam (45 Koin)</div>
-              <div class="text-[#5C3A2E] mt-0.5">🍚 Nasi Putih + 🍗 Ayam Potong (Matang) + 🌶️ Bumbu Rajang (Matang)</div>
+              <div class="font-display font-bold text-sm text-[#1A1412]">1. 🍛 Nasi Goreng Spesial (55 Koin)</div>
+              <div class="text-[#5C3A2E] mt-0.5">🍚 Nasi Matang🔥 + 🍗 Ayam Matang🔥 + 🥬 Sayur Bumbu Matang🔥</div>
             </div>
-            <span class="px-2 py-1 bg-[#2A9D8F] text-white font-mono-ticket font-bold rounded border border-[#1C1614]">45🪙</span>
+            <span class="px-2 py-1 bg-[#2EC4B6] text-[#1A1412] font-mono-ticket font-bold rounded border border-[#1A1412]">55🪙</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-[#F3E9D2] border-2 border-[#1C1614] flex justify-between items-center">
+          <div class="p-3 rounded-xl bg-[#EDE0D1] border-2 border-[#1A1412] flex justify-between items-center">
             <div>
-              <div class="font-display font-bold text-sm text-[#1C1614]">2. 🍜 Mie Kuah Spesial Malam (50 Koin)</div>
-              <div class="text-[#5C3A2E] mt-0.5">🍜 Mie Telur (Matang) + 🍗 Ayam Potong (Matang) + 🥬 Sayur Sawi (Matang)</div>
+              <div class="font-display font-bold text-sm text-[#1A1412]">2. 🍗 Ayam Panggang Madu (45 Koin)</div>
+              <div class="text-[#5C3A2E] mt-0.5">🍗 Ayam Matang🔥 + 🥬 Sayur Bumbu Matang🔥</div>
             </div>
-            <span class="px-2 py-1 bg-[#2A9D8F] text-white font-mono-ticket font-bold rounded border border-[#1C1614]">50🪙</span>
+            <span class="px-2 py-1 bg-[#2EC4B6] text-[#1A1412] font-mono-ticket font-bold rounded border border-[#1A1412]">45🪙</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-[#F3E9D2] border-2 border-[#1C1614] flex justify-between items-center">
+          <div class="p-3 rounded-xl bg-[#EDE0D1] border-2 border-[#1A1412] flex justify-between items-center">
             <div>
-              <div class="font-display font-bold text-sm text-[#1C1614]">3. 🍳 Nasi Telur Pontianak (40 Koin)</div>
-              <div class="text-[#5C3A2E] mt-0.5">🍚 Nasi Putih + 🥚 Telur Segar (Matang) + 🌶️ Bumbu Rajang (Matang)</div>
+              <div class="font-display font-bold text-sm text-[#1A1412]">3. 🍜 Mie Kuah Kaldu Malam (55 Koin)</div>
+              <div class="text-[#5C3A2E] mt-0.5">🍜 Mie Matang🔥 + 🍗 Ayam Matang🔥 + 🥬 Sayur Bumbu Matang🔥</div>
             </div>
-            <span class="px-2 py-1 bg-[#2A9D8F] text-white font-mono-ticket font-bold rounded border border-[#1C1614]">40🪙</span>
+            <span class="px-2 py-1 bg-[#2EC4B6] text-[#1A1412] font-mono-ticket font-bold rounded border border-[#1A1412]">55🪙</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-[#F3E9D2] border-2 border-[#1C1614] flex justify-between items-center">
+          <div class="p-3 rounded-xl bg-[#EDE0D1] border-2 border-[#1A1412] flex justify-between items-center">
             <div>
-              <div class="font-display font-bold text-sm text-[#1C1614]">4. 🍗 Ayam Goreng Spesial (38 Koin)</div>
-              <div class="text-[#5C3A2E] mt-0.5">🍗 Ayam Potong (Matang) + 🌶️ Bumbu Rajang (Matang)</div>
+              <div class="font-display font-bold text-sm text-[#1A1412]">4. 🍹 Es Teh Manis Segar (35 Koin)</div>
+              <div class="text-[#5C3A2E] mt-0.5">🍹 Es Teh Manis (Seduh di Station 1 ➔ Oper ➔ Taruh di Piring Saji)</div>
             </div>
-            <span class="px-2 py-1 bg-[#2A9D8F] text-white font-mono-ticket font-bold rounded border border-[#1C1614]">38🪙</span>
+            <span class="px-2 py-1 bg-[#2EC4B6] text-[#1A1412] font-mono-ticket font-bold rounded border border-[#1A1412]">35🪙</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==========================================
-       MODAL 2: TOKO UPGRADE KEDAI & END-OF-SHIFT RECEIPT
-       ========================================== -->
+  <!-- =========================================================
+       MODAL: TOKO UPGRADE KEDAI & END-OF-SHIFT RECEIPT
+       ========================================================= -->
   <div id="shop-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
     <div class="tactile-card max-w-xl w-full p-5 max-h-[92vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b-2 border-[#1C1614] pb-3 mb-4">
+      <div class="flex items-center justify-between border-b-2 border-[#1A1412] pb-3 mb-4">
         <div>
-          <h3 id="shop-modal-title" class="font-display text-xl font-bold text-[#1C1614]">🛒 TOKO PERALATAN & UPGRADE KEDAI</h3>
+          <h3 id="shop-modal-title" class="font-display text-xl font-bold text-[#1A1412]">🛒 TOKO PERALATAN & UPGRADE KEDAI</h3>
           <p class="text-xs font-semibold text-[#5C3A2E]">Upgrade peralatan dapur supaya kerja sama kalian makin ngebut!</p>
         </div>
         <div class="flex items-center gap-2">
-          <div class="px-3 py-1 rounded-lg bg-[#FEF3C7] border-2 border-[#1C1614] font-mono-ticket font-extrabold text-sm text-[#E63946]">
+          <div class="px-3 py-1 rounded-lg bg-[#FFF3CD] border-2 border-[#1A1412] font-mono-ticket font-extrabold text-sm text-[#E63946]">
             💰 <span id="shop-coins-balance">0</span>
           </div>
           <button onclick="GameApp.closeShopModal()" class="tactile-btn bg-[#E63946] text-white px-3 py-1 text-xs font-extrabold">✕</button>
         </div>
       </div>
 
-      <!-- Thermal Shift Summary Receipt (Visible when Shift Ends) -->
-      <div id="shift-summary-receipt" class="hidden mb-4 p-4 bg-white border-2 border-dashed border-[#1C1614] rounded-xl font-mono-ticket text-xs">
-        <div class="text-center border-b border-dashed border-[#1C1614] pb-2 mb-2">
+      <!-- Thermal Shift Summary Receipt -->
+      <div id="shift-summary-receipt" class="hidden mb-4 p-4 bg-white border-2 border-dashed border-[#1A1412] rounded-xl font-mono-ticket text-xs">
+        <div class="text-center border-b border-dashed border-[#1A1412] pb-2 mb-2">
           <div class="font-extrabold text-sm">*** STRUK TUTUP SHIFT MALAM ***</div>
           <div class="text-[11px] text-[#5C3A2E]">KEDAI TENGAH MALAM CO-OP</div>
         </div>
         <div class="space-y-1">
           <div class="flex justify-between"><span>Pesanan Selesai:</span><span id="receipt-served" class="font-bold">0 Porsi</span></div>
           <div class="flex justify-between"><span>Pelanggan Kabur:</span><span id="receipt-failed" class="font-bold text-[#E63946]">0 Orang</span></div>
-          <div class="flex justify-between"><span>Rekor Combo Tertinggi:</span><span id="receipt-max-combo" class="font-bold text-[#F59E0B]">x1</span></div>
-          <div class="flex justify-between border-t border-dashed border-[#1C1614] pt-1.5 text-sm font-extrabold">
-            <span>TOTAL PENDAPATAN SHIFT:</span><span id="receipt-coins-earned" class="text-[#2A9D8F]">+0 Koin</span>
+          <div class="flex justify-between"><span>Rekor Combo Tertinggi:</span><span id="receipt-max-combo" class="font-bold text-[#FF6B35]">x1</span></div>
+          <div class="flex justify-between border-t border-dashed border-[#1A1412] pt-1.5 text-sm font-extrabold">
+            <span>TOTAL PENDAPATAN SHIFT:</span><span id="receipt-coins-earned" class="text-[#2EC4B6]">+0 Koin</span>
           </div>
         </div>
         <div class="mt-3 flex gap-2">
-          <button onclick="GameApp.restartShift()" class="tactile-btn w-full py-2.5 bg-[#2A9D8F] text-white font-sans font-extrabold text-xs">
-            🔄 MULAI SHIFT BARU SEKARANG!
+          <button onclick="GameApp.restartShift()" class="tactile-btn w-full py-2.5 bg-[#2EC4B6] text-[#1A1412] font-sans font-extrabold text-xs">
+            🔄 MULAI SHIFT BARU BERSAMA!
           </button>
         </div>
       </div>
 
-      <!-- Upgrade Items List -->
       <div id="upgrades-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <!-- Populated dynamically by JS -->
       </div>
     </div>
   </div>
 
-  <!-- ==========================================
-       FIREBASE & APPLICATION LOGIC
-       ========================================== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+  <!-- =========================================================
+       APPLICATION SCRIPTS: AUDIO, MULTI-RELAY NETWORK & GAMEPLAY
+       ========================================================= -->
+  <script>
     // =========================================================================
-    // 1. PROCEDURAL WEB AUDIO SYNTHESIZER (NO EXTERNAL MP3 NEEDED)
+    // 1. PROCEDURAL WEB AUDIO SYNTHESIZER (NO EXTERNAL MP3 REQUIRED)
     // =========================================================================
     const AudioEngine = {
       ctx: null,
@@ -895,7 +1061,7 @@
           if (AudioCtx) this.ctx = new AudioCtx();
         }
         if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume();
+          this.ctx.resume().catch(() => {});
         }
       },
 
@@ -903,7 +1069,7 @@
         this.muted = !this.muted;
         const lobbyBtn = document.getElementById('lobby-sound-btn');
         const hudBtn = document.getElementById('hud-sound-btn');
-        if (lobbyBtn) lobbyBtn.textContent = this.muted ? '🔇 Suara: OFF' : '🔊 Suara: ON';
+        if (lobbyBtn) lobbyBtn.textContent = this.muted ? '🔇 OFF' : '🔊 ON';
         if (hudBtn) hudBtn.textContent = this.muted ? '🔇' : '🔊';
         if (!this.muted) this.playPop();
       },
@@ -916,8 +1082,8 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(190, now);
-        osc.frequency.exponentialRampToValueAtTime(55, now + 0.065);
+        osc.frequency.setValueAtTime(210, now);
+        osc.frequency.exponentialRampToValueAtTime(58, now + 0.065);
         gain.gain.setValueAtTime(0.35, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
         osc.connect(gain);
@@ -934,9 +1100,9 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(340, now);
-        osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
-        gain.gain.setValueAtTime(0.2, now);
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(720, now + 0.085);
+        gain.gain.setValueAtTime(0.22, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -949,8 +1115,7 @@
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        // White noise burst for wok sizzle
-        const bufferSize = this.ctx.sampleRate * 0.18;
+        const bufferSize = Math.floor(this.ctx.sampleRate * 0.18);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -961,7 +1126,7 @@
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.value = 3200;
+        filter.frequency.value = 3400;
 
         const gain = this.ctx.createGain();
         gain.gain.setValueAtTime(0.18, now);
@@ -983,7 +1148,7 @@
           const gain = this.ctx.createGain();
           osc.type = 'sine';
           osc.frequency.setValueAtTime(freq, now + idx * 0.055);
-          gain.gain.setValueAtTime(0.25, now + idx * 0.055);
+          gain.gain.setValueAtTime(0.24, now + idx * 0.055);
           gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.055 + 0.55);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -1030,12 +1195,249 @@
         osc.stop(now + 0.21);
       }
     };
-    window.AudioEngine = AudioEngine;
 
     // =========================================================================
-    // 2. ILLUSTRATED SVG FOOD & ITEM CATALOG
+    // 2. MULTI-TRANSPORT NETWORK MANAGER (MQTT WSS + PEERJS + BROADCAST + RTDB)
+    //    Engineered to work 100% on GitHub Pages across any mobile/Wi-Fi network
+    // =========================================================================
+    const BROKER_ENDPOINTS = [
+      { name: 'EMQX Cloud WSS', url: 'wss://broker.emqx.io:8084/mqtt' },
+      { name: 'HiveMQ Cloud WSS', url: 'wss://broker.hivemq.com:8884/mqtt' },
+      { name: 'Mosquitto WSS', url: 'wss://test.mosquitto.org:8081/mqtt' }
+    ];
+
+    const NetworkManager = {
+      roomCode: '',
+      clientId: 'chef_' + Math.random().toString(36).substring(2, 10),
+      mqttClients: [],
+      peer: null,
+      peerConn: null,
+      bcChannel: null,
+      firebaseUrl: localStorage.getItem('ktm_custom_firebase_url') || '',
+      firebasePollTimer: null,
+      seenMessageIds: new Set(),
+      onMessageCallback: null,
+      connectedTransportName: 'Local Tab',
+      lastPingMs: 24,
+
+      connectRoom(rawRoomCode, onMsg) {
+        this.disconnect();
+        this.roomCode = rawRoomCode.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '') || 'KEDAI88';
+        this.onMessageCallback = onMsg;
+        const topic = `kedai-tengah-malam-v2/room/${this.roomCode}`;
+
+        // 1. BroadcastChannel for instant same-device multi-tab testing
+        if ('BroadcastChannel' in window) {
+          try {
+            this.bcChannel = new BroadcastChannel(`ktm_v2_${this.roomCode}`);
+            this.bcChannel.onmessage = (ev) => {
+              if (ev.data) this.handleIncomingPacket(ev.data, 'BroadcastChannel');
+            };
+          } catch (e) {}
+        }
+
+        // 2. Primary Cloud Relay: Connect to MQTT over Secure WebSockets (Multi-Broker Redundancy!)
+        if (typeof mqtt !== 'undefined') {
+          BROKER_ENDPOINTS.forEach((broker) => {
+            try {
+              const client = mqtt.connect(broker.url, {
+                clientId: `${this.clientId}_${Math.random().toString(36).substring(2, 6)}`,
+                clean: true,
+                connectTimeout: 6000,
+                reconnectPeriod: 2500
+              });
+
+              client.on('connect', () => {
+                client.subscribe(topic, { qos: 0 }, (err) => {
+                  if (!err) {
+                    this.connectedTransportName = broker.name;
+                    this.updateStatusUI(`🟢 Terhubung ke ${broker.name} (Room: ${this.roomCode})`);
+                  }
+                });
+              });
+
+              client.on('message', (t, payloadBuffer) => {
+                try {
+                  const msgObj = JSON.parse(payloadBuffer.toString());
+                  this.handleIncomingPacket(msgObj, broker.name);
+                } catch (err) {}
+              });
+
+              this.mqttClients.push(client);
+            } catch (err) {
+              console.warn('MQTT broker init skip:', broker.name, err);
+            }
+          });
+        }
+
+        // 3. Secondary Direct Transport: PeerJS WebRTC
+        if (typeof Peer !== 'undefined') {
+          try {
+            const hostPeerId = `ktm-v2-room-${this.roomCode.toLowerCase()}-host`;
+            this.peer = new Peer(hostPeerId, { debug: 0 });
+
+            this.peer.on('open', () => {
+              // We claimed the deterministic Host Peer ID
+              this.peer.on('connection', (conn) => {
+                this.peerConn = conn;
+                this.setupPeerConnection(conn);
+              });
+            });
+
+            this.peer.on('error', (err) => {
+              if (err.type === 'unavailable-id') {
+                // Host Peer ID is already taken by our partner -> connect as Guest Peer!
+                try {
+                  const guestPeer = new Peer({ debug: 0 });
+                  guestPeer.on('open', () => {
+                    const conn = guestPeer.connect(hostPeerId, { reliable: true });
+                    this.peerConn = conn;
+                    this.setupPeerConnection(conn);
+                  });
+                  this.peer = guestPeer;
+                } catch (e) {}
+              }
+            });
+          } catch (e) {}
+        }
+
+        // 4. Optional Custom Firebase Realtime Database REST Sync
+        if (this.firebaseUrl && this.firebaseUrl.startsWith('https://')) {
+          this.startFirebasePolling();
+        }
+      },
+
+      setupPeerConnection(conn) {
+        conn.on('open', () => {
+          this.connectedTransportName = 'WebRTC P2P + Cloud WSS';
+          this.updateStatusUI(`🟢 P2P Direct & Cloud Relay Aktif (Room: ${this.roomCode})`);
+        });
+        conn.on('data', (data) => {
+          if (data) this.handleIncomingPacket(data, 'PeerJS');
+        });
+      },
+
+      startFirebasePolling() {
+        if (this.firebasePollTimer) clearInterval(this.firebasePollTimer);
+        const cleanBase = this.firebaseUrl.replace(/\/$/, '');
+        const endpoint = `${cleanBase}/kedai_rooms/${this.roomCode}.json`;
+
+        this.firebasePollTimer = setInterval(async () => {
+          try {
+            const res = await fetch(endpoint);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && data.lastPacket) {
+              this.handleIncomingPacket(data.lastPacket, 'Firebase RTDB');
+            }
+          } catch (e) {}
+        }, 900);
+      },
+
+      broadcast(type, payload = {}) {
+        if (!this.roomCode) return;
+        const packet = {
+          msgId: `${this.clientId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          senderId: this.clientId,
+          roomCode: this.roomCode,
+          type,
+          payload,
+          ts: Date.now()
+        };
+
+        this.seenMessageIds.add(packet.msgId);
+
+        // Send via BroadcastChannel
+        if (this.bcChannel) {
+          try {
+            this.bcChannel.postMessage(packet);
+          } catch (e) {}
+        }
+
+        // Send via all connected MQTT WSS brokers
+        const topic = `kedai-tengah-malam-v2/room/${this.roomCode}`;
+        const serialized = JSON.stringify(packet);
+        this.mqttClients.forEach((client) => {
+          try {
+            if (client && client.connected) {
+              client.publish(topic, serialized, { qos: 0 });
+            }
+          } catch (e) {}
+        });
+
+        // Send via PeerJS DataChannel if open
+        if (this.peerConn && this.peerConn.open) {
+          try {
+            this.peerConn.send(packet);
+          } catch (e) {}
+        }
+
+        // Send via Custom Firebase RTDB if configured
+        if (this.firebaseUrl && this.firebaseUrl.startsWith('https://')) {
+          const cleanBase = this.firebaseUrl.replace(/\/$/, '');
+          const endpoint = `${cleanBase}/kedai_rooms/${this.roomCode}.json`;
+          fetch(endpoint, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ updatedAt: Date.now(), lastPacket: packet })
+          }).catch(() => {});
+        }
+      },
+
+      handleIncomingPacket(packet, sourceTransport) {
+        if (!packet || !packet.msgId || packet.roomCode !== this.roomCode) return;
+        if (packet.senderId === this.clientId) return;
+        if (this.seenMessageIds.has(packet.msgId)) return;
+
+        this.seenMessageIds.add(packet.msgId);
+        if (this.seenMessageIds.size > 400) {
+          const first = this.seenMessageIds.values().next().value;
+          this.seenMessageIds.delete(first);
+        }
+
+        if (packet.ts) {
+          this.lastPingMs = Math.max(8, Math.min(450, Math.abs(Date.now() - packet.ts)));
+        }
+
+        if (this.onMessageCallback) {
+          this.onMessageCallback(packet.type, packet.payload, packet.senderId, sourceTransport);
+        }
+      },
+
+      updateStatusUI(text) {
+        const el = document.getElementById('waiting-net-status');
+        if (el) el.textContent = text;
+      },
+
+      disconnect() {
+        if (this.bcChannel) {
+          try { this.bcChannel.close(); } catch (e) {}
+          this.bcChannel = null;
+        }
+        this.mqttClients.forEach((c) => {
+          try { c.end(true); } catch (e) {}
+        });
+        this.mqttClients = [];
+        if (this.peerConn) {
+          try { this.peerConn.close(); } catch (e) {}
+          this.peerConn = null;
+        }
+        if (this.peer) {
+          try { this.peer.destroy(); } catch (e) {}
+          this.peer = null;
+        }
+        if (this.firebasePollTimer) {
+          clearInterval(this.firebasePollTimer);
+          this.firebasePollTimer = null;
+        }
+      }
+    };
+
+    // =========================================================================
+    // 3. ILLUSTRATED SVG FOOD & ITEM CATALOG
     // =========================================================================
     const INGREDIENTS = {
+      // 1. AYAM FILLET -> AYAM POTONG -> AYAM MATANG
       ayam_raw: {
         id: 'ayam_raw',
         name: 'Ayam Fillet',
@@ -1043,18 +1445,16 @@
         needsChop: true,
         choppedId: 'ayam_chop',
         needsCook: false,
-        color: '#FDE68A',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M14 28c-4-5-2-14 5-16 6-2 15 2 17 9 2 6-3 14-10 15-5 1-9-4-12-8z" fill="#FCA5A5" stroke="#1C1614" stroke-width="2.5"/><path d="M20 18c3-1 7 1 9 4" stroke="#FEF2F2" stroke-width="2.5" stroke-linecap="round"/><circle cx="11" cy="33" r="3.5" fill="#FAF4E8" stroke="#1C1614" stroke-width="2"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M14 28c-4-5-2-14 5-16 6-2 15 2 17 9 2 6-3 14-10 15-5 1-9-4-12-8z" fill="#FCA5A5" stroke="#1A1412" stroke-width="2.5"/><path d="M20 18c3-1 7 1 9 4" stroke="#FEF2F2" stroke-width="2.5" stroke-linecap="round"/><circle cx="11" cy="33" r="3.5" fill="#F5EBE1" stroke="#1A1412" stroke-width="2"/></svg>`
       },
       ayam_chop: {
         id: 'ayam_chop',
         name: 'Ayam Potong',
-        shortName: 'Ayam Potong',
+        shortName: '🍗 Ayam Potong',
         needsChop: false,
         needsCook: true,
         cookedId: 'ayam_cooked',
-        color: '#FCD34D',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><rect x="10" y="18" width="11" height="10" rx="3" fill="#FCA5A5" stroke="#1C1614" stroke-width="2.5"/><rect x="24" y="15" width="12" height="10" rx="3" fill="#FCA5A5" stroke="#1C1614" stroke-width="2.5"/><rect x="17" y="26" width="12" height="10" rx="3" fill="#F87171" stroke="#1C1614" stroke-width="2.5"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><rect x="10" y="18" width="11" height="10" rx="3" fill="#FCA5A5" stroke="#1A1412" stroke-width="2.5"/><rect x="24" y="15" width="12" height="10" rx="3" fill="#FCA5A5" stroke="#1A1412" stroke-width="2.5"/><rect x="17" y="26" width="12" height="10" rx="3" fill="#F87171" stroke="#1A1412" stroke-width="2.5"/></svg>`
       },
       ayam_cooked: {
         id: 'ayam_cooked',
@@ -1063,92 +1463,56 @@
         needsChop: false,
         needsCook: false,
         isPlatable: true,
-        color: '#F59E0B',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><rect x="9" y="18" width="12" height="10" rx="3" fill="#D97706" stroke="#1C1614" stroke-width="2.5"/><rect x="24" y="15" width="13" height="10" rx="3" fill="#B45309" stroke="#1C1614" stroke-width="2.5"/><rect x="16" y="26" width="13" height="10" rx="3" fill="#F59E0B" stroke="#1C1614" stroke-width="2.5"/><path d="M18 11c0-3 2-4 2-6M28 11c0-3 2-4 2-6" stroke="#E63946" stroke-width="2" stroke-linecap="round"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><rect x="9" y="18" width="12" height="10" rx="3" fill="#D97706" stroke="#1A1412" stroke-width="2.5"/><rect x="24" y="15" width="13" height="10" rx="3" fill="#B45309" stroke="#1A1412" stroke-width="2.5"/><rect x="16" y="26" width="13" height="10" rx="3" fill="#FFB800" stroke="#1A1412" stroke-width="2.5"/><path d="M18 11c0-3 2-4 2-6M28 11c0-3 2-4 2-6" stroke="#FF6B35" stroke-width="2" stroke-linecap="round"/></svg>`
       },
 
-      bumbu_raw: {
-        id: 'bumbu_raw',
-        name: 'Cabai & Bawang',
-        shortName: 'Cabai Bawang',
-        needsChop: true,
-        choppedId: 'bumbu_chop',
-        needsCook: false,
-        color: '#FECACA',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M12 32c8-2 16-10 20-20 2 6-2 18-12 23-4 2-8 0-8-3z" fill="#E63946" stroke="#1C1614" stroke-width="2.5"/><circle cx="30" cy="30" r="7" fill="#FAF4E8" stroke="#1C1614" stroke-width="2.5"/><path d="M30 23v-3" stroke="#2A9D8F" stroke-width="2.5" stroke-linecap="round"/></svg>`
-      },
-      bumbu_chop: {
-        id: 'bumbu_chop',
-        name: 'Bumbu Rajang',
-        shortName: 'Bumbu Rajang',
-        needsChop: false,
-        needsCook: true,
-        cookedId: 'bumbu_cooked',
-        color: '#FCA5A5',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><circle cx="16" cy="24" r="4.5" fill="#E63946" stroke="#1C1614" stroke-width="2"/><circle cx="26" cy="20" r="4" fill="#FAF4E8" stroke="#1C1614" stroke-width="2"/><circle cx="31" cy="28" r="4.5" fill="#E63946" stroke="#1C1614" stroke-width="2"/><circle cx="21" cy="31" r="4" fill="#FAF4E8" stroke="#1C1614" stroke-width="2"/></svg>`
-      },
-      bumbu_cooked: {
-        id: 'bumbu_cooked',
-        name: 'Bumbu Matang',
-        shortName: '🌶️ Bumbu🔥',
-        needsChop: false,
-        needsCook: false,
-        isPlatable: true,
-        color: '#E63946',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><ellipse cx="24" cy="27" rx="14" ry="9" fill="#991B1B" stroke="#1C1614" stroke-width="2.5"/><circle cx="19" cy="25" r="3" fill="#F59E0B"/><circle cx="28" cy="27" r="3" fill="#EF4444"/><circle cx="23" cy="29" r="2.5" fill="#FEF3C7"/></svg>`
-      },
-
-      sayur_raw: {
-        id: 'sayur_raw',
-        name: 'Sayur Sawi',
-        shortName: 'Sayur Mentah',
-        needsChop: true,
-        choppedId: 'sayur_chop',
-        needsCook: false,
-        color: '#A7F3D0',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M16 36c-4-8-2-20 8-22 10 2 12 14 8 22H16z" fill="#2A9D8F" stroke="#1C1614" stroke-width="2.5"/><path d="M24 18v18" stroke="#FAF4E8" stroke-width="3" stroke-linecap="round"/></svg>`
-      },
-      sayur_chop: {
-        id: 'sayur_chop',
-        name: 'Sayur Potong',
-        shortName: 'Sayur Potong',
-        needsChop: false,
-        needsCook: true,
-        cookedId: 'sayur_cooked',
-        color: '#6EE7B7',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 22h12v8H10z" fill="#2A9D8F" stroke="#1C1614" stroke-width="2.2"/><path d="M25 18h12v8H25z" fill="#34D399" stroke="#1C1614" stroke-width="2.2"/><path d="M18 28h12v8H18z" fill="#10B981" stroke="#1C1614" stroke-width="2.2"/></svg>`
-      },
-      sayur_cooked: {
-        id: 'sayur_cooked',
-        name: 'Sayur Matang',
-        shortName: '🥬 Sayur🔥',
-        needsChop: false,
-        needsCook: false,
-        isPlatable: true,
-        color: '#10B981',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><ellipse cx="24" cy="27" rx="14" ry="9" fill="#047857" stroke="#1C1614" stroke-width="2.5"/><path d="M16 26c4-3 12-3 16 0" stroke="#A7F3D0" stroke-width="3" stroke-linecap="round"/></svg>`
-      },
-
-      nasi_ready: {
-        id: 'nasi_ready',
+      // 2. NASI PUTIH -> NASI SIAP MASAK -> NASI GORENG MATANG
+      nasi_raw: {
+        id: 'nasi_raw',
         name: 'Nasi Putih',
-        shortName: '🍚 Nasi',
+        shortName: 'Nasi Dingin',
+        needsChop: true,
+        choppedId: 'nasi_chop',
+        needsCook: false,
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 26c0-8 6-13 14-13s14 5 14 13H10z" fill="#FFFFFF" stroke="#1A1412" stroke-width="2.5"/><path d="M8 26h32l-4 11H12L8 26z" fill="#2EC4B6" stroke="#1A1412" stroke-width="2.5"/></svg>`
+      },
+      nasi_chop: {
+        id: 'nasi_chop',
+        name: 'Nasi Siap Wok',
+        shortName: '🍚 Nasi Siap',
+        needsChop: false,
+        needsCook: true,
+        cookedId: 'nasi_cooked',
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><ellipse cx="24" cy="26" rx="14" ry="9" fill="#FFFFFF" stroke="#1A1412" stroke-width="2.5"/><circle cx="20" cy="24" r="2" fill="#CBD5E1"/><circle cx="27" cy="26" r="2" fill="#CBD5E1"/></svg>`
+      },
+      nasi_cooked: {
+        id: 'nasi_cooked',
+        name: 'Nasi Matang',
+        shortName: '🍚 Nasi🔥',
         needsChop: false,
         needsCook: false,
         isPlatable: true,
-        color: '#FAF4E8',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 26c0-8 6-13 14-13s14 5 14 13H10z" fill="#FFFFFF" stroke="#1C1614" stroke-width="2.5"/><path d="M8 26h32l-4 11H12L8 26z" fill="#E63946" stroke="#1C1614" stroke-width="2.5"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 26c0-8 6-13 14-13s14 5 14 13H10z" fill="#FDE68A" stroke="#1A1412" stroke-width="2.5"/><path d="M8 26h32l-4 11H12L8 26z" fill="#FF6B35" stroke="#1A1412" stroke-width="2.5"/></svg>`
       },
 
+      // 3. MIE TELUR -> MIE SIAP REBUS -> MIE MATANG
       mie_raw: {
         id: 'mie_raw',
         name: 'Mie Telur',
         shortName: 'Mie Mentah',
+        needsChop: true,
+        choppedId: 'mie_chop',
+        needsCook: false,
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><rect x="10" y="14" width="28" height="20" rx="5" fill="#FACC15" stroke="#1A1412" stroke-width="2.5"/><path d="M14 20c4-2 8 2 12 0s8 2 8 0M14 26c4-2 8 2 12 0s8 2 8 0" stroke="#854D0E" stroke-width="2.2" stroke-linecap="round"/></svg>`
+      },
+      mie_chop: {
+        id: 'mie_chop',
+        name: 'Mie Siap Masak',
+        shortName: '🍜 Mie Siap',
         needsChop: false,
         needsCook: true,
         cookedId: 'mie_cooked',
-        color: '#FDE047',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><rect x="10" y="14" width="28" height="20" rx="5" fill="#FACC15" stroke="#1C1614" stroke-width="2.5"/><path d="M14 20c4-2 8 2 12 0s8 2 8 0M14 26c4-2 8 2 12 0s8 2 8 0" stroke="#854D0E" stroke-width="2.2" stroke-linecap="round"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><circle cx="24" cy="25" r="12" fill="#FDE047" stroke="#1A1412" stroke-width="2.5"/><path d="M17 23c4-3 10 3 14 0M17 28c4-3 10 3 14 0" stroke="#A16207" stroke-width="2.2" stroke-linecap="round"/></svg>`
       },
       mie_cooked: {
         id: 'mie_cooked',
@@ -1157,79 +1521,93 @@
         needsChop: false,
         needsCook: false,
         isPlatable: true,
-        color: '#F59E0B',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 24c4-4 24-4 28 0-2 9-6 13-14 13S12 33 10 24z" fill="#FBBF24" stroke="#1C1614" stroke-width="2.5"/><path d="M16 20c3-3 13-3 16 0" stroke="#B45309" stroke-width="2.5" stroke-linecap="round"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 24c4-4 24-4 28 0-2 9-6 13-14 13S12 33 10 24z" fill="#FFB800" stroke="#1A1412" stroke-width="2.5"/><path d="M16 20c3-3 13-3 16 0" stroke="#B45309" stroke-width="2.5" stroke-linecap="round"/></svg>`
       },
 
-      telur_raw: {
-        id: 'telur_raw',
-        name: 'Telur Segar',
-        shortName: 'Telur Mentah',
+      // 4. SAYUR & BUMBU -> SAYUR RAJANG -> SAYUR MATANG
+      sayur_raw: {
+        id: 'sayur_raw',
+        name: 'Sayur & Bumbu',
+        shortName: 'Sayur Mentah',
+        needsChop: true,
+        choppedId: 'sayur_chop',
+        needsCook: false,
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M16 36c-4-8-2-20 8-22 10 2 12 14 8 22H16z" fill="#2EC4B6" stroke="#1A1412" stroke-width="2.5"/><path d="M24 18v18" stroke="#F5EBE1" stroke-width="3" stroke-linecap="round"/><circle cx="33" cy="30" r="5" fill="#E63946" stroke="#1A1412" stroke-width="2"/></svg>`
+      },
+      sayur_chop: {
+        id: 'sayur_chop',
+        name: 'Sayur & Bumbu Rajang',
+        shortName: '🥬 Sayur Potong',
         needsChop: false,
         needsCook: true,
-        cookedId: 'telur_cooked',
-        color: '#FEF3C7',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><ellipse cx="24" cy="25" rx="10" ry="13" fill="#FDE68A" stroke="#1C1614" stroke-width="2.5"/><circle cx="21" cy="21" r="2" fill="#FFFFFF"/></svg>`
+        cookedId: 'sayur_cooked',
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 22h12v8H10z" fill="#2EC4B6" stroke="#1A1412" stroke-width="2.2"/><path d="M25 18h12v8H25z" fill="#34D399" stroke="#1A1412" stroke-width="2.2"/><circle cx="24" cy="31" r="5" fill="#E63946" stroke="#1A1412" stroke-width="2"/></svg>`
       },
-      telur_cooked: {
-        id: 'telur_cooked',
-        name: 'Telur Ceplok',
-        shortName: '🥚 Telur🔥',
+      sayur_cooked: {
+        id: 'sayur_cooked',
+        name: 'Sayur Bumbu Matang',
+        shortName: '🥬 Sayur🔥',
         needsChop: false,
         needsCook: false,
         isPlatable: true,
-        color: '#F59E0B',
-        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 25c0-7 7-12 15-11 8 1 13 6 12 13-1 6-8 10-15 9-7-1-12-5-12-11z" fill="#FFFFFF" stroke="#1C1614" stroke-width="2.5"/><circle cx="24" cy="25" r="5.5" fill="#F59E0B" stroke="#1C1614" stroke-width="2"/></svg>`
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><ellipse cx="24" cy="27" rx="14" ry="9" fill="#047857" stroke="#1A1412" stroke-width="2.5"/><path d="M16 26c4-3 12-3 16 0" stroke="#A7F3D0" stroke-width="3" stroke-linecap="round"/><circle cx="24" cy="26" r="3" fill="#FF6B35"/></svg>`
+      },
+
+      // 5. ES TEH MANIS (READY TO PASS & PLATE)
+      es_teh: {
+        id: 'es_teh',
+        name: 'Es Teh Manis',
+        shortName: '🍹 Es Teh',
+        needsChop: false,
+        needsCook: false,
+        isPlatable: true,
+        svg: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M14 14h20l-2 24H16L14 14z" fill="#D97706" stroke="#1A1412" stroke-width="2.5"/><rect x="17" y="18" width="5" height="5" rx="1" fill="#F5EBE1"/><rect x="25" y="20" width="5" height="5" rx="1" fill="#F5EBE1"/><path d="M28 14l4-7" stroke="#E63946" stroke-width="3" stroke-linecap="round"/></svg>`
       }
     };
 
-    // Crate list shown on Station 1
-    const CRATE_KEYS = ['ayam_raw', 'bumbu_raw', 'sayur_raw', 'nasi_ready', 'mie_raw', 'telur_raw'];
+    const CRATE_KEYS = ['ayam_raw', 'nasi_raw', 'mie_raw', 'sayur_raw'];
 
     // =========================================================================
-    // 3. RECIPES CATALOG (4 SIGNATURE DISHES)
+    // 4. RECIPES CATALOG (4 SIGNATURE DISHES)
     // =========================================================================
     const RECIPES = [
       {
-        id: 'nasi_ayam_cabai',
-        name: 'Nasi Ayam Cabai Garam',
-        shortName: '🍛 Nasi Ayam Cabai',
-        reward: 45,
-        ingredients: ['nasi_ready', 'ayam_cooked', 'bumbu_cooked'],
-        badgeText: '🍚Nasi + 🍗Ayam🔥 + 🌶️Bumbu🔥'
+        id: 'nasi_goreng_spesial',
+        name: 'Nasi Goreng Spesial',
+        shortName: '🍛 Nasi Goreng Spesial',
+        reward: 55,
+        ingredients: ['nasi_cooked', 'ayam_cooked', 'sayur_cooked'],
+        badgeText: '🍚Nasi🔥 + 🍗Ayam🔥 + 🥬Sayur🔥'
       },
       {
-        id: 'mie_kuah_spesial',
-        name: 'Mie Kuah Spesial',
-        shortName: '🍜 Mie Kuah Spesial',
-        reward: 50,
+        id: 'ayam_panggang_madu',
+        name: 'Ayam Panggang Madu',
+        shortName: '🍗 Ayam Panggang Madu',
+        reward: 45,
+        ingredients: ['ayam_cooked', 'sayur_cooked'],
+        badgeText: '🍗Ayam🔥 + 🥬Sayur🔥'
+      },
+      {
+        id: 'mie_kuah_kaldu',
+        name: 'Mie Kuah Kaldu',
+        shortName: '🍜 Mie Kuah Kaldu',
+        reward: 55,
         ingredients: ['mie_cooked', 'ayam_cooked', 'sayur_cooked'],
         badgeText: '🍜Mie🔥 + 🍗Ayam🔥 + 🥬Sayur🔥'
       },
       {
-        id: 'nasi_telur_pontianak',
-        name: 'Nasi Telur Pontianak',
-        shortName: '🍳 Nasi Telur Ponti',
-        reward: 40,
-        ingredients: ['nasi_ready', 'telur_cooked', 'bumbu_cooked'],
-        badgeText: '🍚Nasi + 🥚Telur🔥 + 🌶️Bumbu🔥'
-      },
-      {
-        id: 'ayam_goreng_spesial',
-        name: 'Ayam Goreng Spesial',
-        shortName: '🍗 Ayam Goreng Spesial',
-        reward: 38,
-        ingredients: ['ayam_cooked', 'bumbu_cooked'],
-        badgeText: '🍗Ayam🔥 + 🌶️Bumbu🔥'
+        id: 'es_teh_manis_order',
+        name: 'Es Teh Manis Segar',
+        shortName: '🍹 Es Teh Manis Segar',
+        reward: 35,
+        ingredients: ['es_teh'],
+        badgeText: '🍹Es Teh (Oper dari Dispenser)'
       }
     ];
 
     const CUSTOMER_AVATARS = ['🧑🏽‍💻', '👩🏻‍🎨', '🧔🏻‍♂️', '🧕🏻', '👨🏽‍🚀', '👩🏼‍🎤', '🕵🏻‍♂️', '🧑🏻‍🍳'];
     const CUSTOMER_NAMES = ['Mas Dimas', 'Mbak Rara', 'Bang Ojol', 'Kak Nisa', 'Pak RT', 'Ko Hendra', 'Teh Putri', 'Mas Bimo'];
 
-    // =========================================================================
-    // 4. UPGRADE SHOP CATALOG
-    // =========================================================================
     const UPGRADE_ITEMS = [
       {
         id: 'sharp_knife',
@@ -1261,23 +1639,16 @@
     // 5. MAIN GAME APPLICATION CONTROLLER
     // =========================================================================
     const GameApp = {
-      // Mode & Network state
       mode: 'solo', // 'ldr' | 'ai' | 'solo'
       myRole: 1,    // 1 (Station 1) or 2 (Station 2)
-      viewMode: 'split', // 'station1' | 'station2' | 'split'
-      roomCode: '',
+      viewMode: 'split',
+      roomCode: 'KEDAI88',
       playerName: 'Chef Sayang',
-      userId: 'chef-' + Math.random().toString(36).substring(2, 8),
+      isHost: false,
+      inWaitingLobby: false,
+      partnerInfo: null, // { id, name, role, lastSeen }
+      handshakeInterval: null,
 
-      // Firebase & BroadcastChannel
-      db: null,
-      auth: null,
-      user: null,
-      unsubscribeRoom: null,
-      bcChannel: null,
-      isSyncingFromRemote: false,
-
-      // Persistent Progression (In-Memory during session + synced in room)
       walletCoins: 120,
       upgrades: {
         sharp_knife: false,
@@ -1286,10 +1657,9 @@
         lofi_lantern: false
       },
 
-      // Active Shift Kitchen State (Synced across players)
       state: {
         shiftActive: false,
-        timeLeft: 180, // 3 minutes shift
+        timeLeft: 180,
         shiftCoins: 0,
         combo: 1,
         maxCombo: 1,
@@ -1301,74 +1671,65 @@
         teaReady: false,
 
         selectedTicketId: null,
-        orders: [], // [{ id, recipeId, customerName, avatar, patience, maxPatience }]
-        passCounter: [null, null, null, null, null], // 5 slots of ingredient IDs
+        orders: [],
+        passCounter: [null, null, null, null], // 4 Shared Pass-Through Slots
 
-        // Station 1 Chopping Board
         choppingBoard: {
           itemId: null,
           chops: 0,
           maxChops: 4
         },
 
-        // Station 2 Stoves (2 Woks)
         stoves: [
-          { id: 0, itemId: null, progress: 0, burnTimer: 0, status: 'empty' }, // empty | cooking | ready | burnt
+          { id: 0, itemId: null, progress: 0, burnTimer: 0, status: 'empty' },
           { id: 1, itemId: null, progress: 0, burnTimer: 0, status: 'empty' }
         ],
 
-        // Station 2 Plating Area
-        plateItems: [], // array of ingredient IDs currently on the plate
-
-        // Last Ping notification
+        plateItems: [],
         lastPing: null
       },
 
-      // Local Loop Timers
       tickInterval: null,
       orderSpawnTimer: 0,
       aiBotTimer: 0,
       dirtyPlateQueue: [],
 
-      async init() {
-        this.generateRandomRoomCode();
+      init() {
+        // Check if URL has ?room=XXXX parameter for 1-click invite links!
+        const urlParams = new URLSearchParams(window.location.search);
+        const invitedRoom = urlParams.get('room');
+        if (invitedRoom) {
+          const cleanInvite = invitedRoom.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '');
+          const input = document.getElementById('room-code-input');
+          if (input && cleanInvite) {
+            input.value = cleanInvite;
+            this.selectLdrRole(2); // Default invitee to Station 2
+            setTimeout(() => {
+              this.showToast(`💌 Undangan Room "${cleanInvite}" terdeteksi! Klik Gabung Room.`, 'green');
+            }, 400);
+          }
+        } else {
+          this.generateRandomRoomCode();
+        }
+
+        const savedFb = localStorage.getItem('ktm_custom_firebase_url');
+        if (savedFb) {
+          const fbInput = document.getElementById('custom-firebase-url-input');
+          if (fbInput) fbInput.value = savedFb;
+        }
+
         this.renderIngredientCrates();
         this.updateLobbyCoins();
-        await this.initFirebaseSafe();
 
-        // Responsive default view check
         window.addEventListener('resize', () => {
           if (this.state.shiftActive) this.applyViewLayout();
         });
       },
 
-      async initFirebaseSafe() {
-        try {
-          if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-            const firebaseConfig = JSON.parse(__firebase_config);
-            const app = initializeApp(firebaseConfig);
-            this.auth = getAuth(app);
-            this.db = getFirestore(app);
-
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              await signInWithCustomToken(this.auth, __initial_auth_token);
-            } else {
-              await signInAnonymously(this.auth);
-            }
-            this.user = this.auth.currentUser;
-            if (this.user) this.userId = this.user.uid;
-            const badge = document.getElementById('cloud-status-badge');
-            if (badge) badge.textContent = '● Cloud Sinkron Aktif';
-          }
-        } catch (err) {
-          console.warn('Fallback ke Local BroadcastChannel:', err);
-        }
-      },
-
       generateRandomRoomCode() {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let code = 'KD';
-        for (let i = 0; i < 4; i++) {
+        let code = '';
+        for (let i = 0; i < 5; i++) {
           code += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         const input = document.getElementById('room-code-input');
@@ -1380,90 +1741,299 @@
         const btn1 = document.getElementById('ldr-role-1');
         const btn2 = document.getElementById('ldr-role-2');
         if (roleNum === 1) {
-          btn1.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1C1614] bg-[#2A9D8F] text-white font-extrabold text-xs';
-          btn2.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1C1614] bg-white text-[#1C1614] font-extrabold text-xs';
+          btn1.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1A1412] bg-[#2EC4B6] text-[#1A1412] font-extrabold text-xs';
+          btn2.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1A1412] bg-white text-[#1A1412] font-extrabold text-xs';
         } else {
-          btn2.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1C1614] bg-[#E63946] text-white font-extrabold text-xs';
-          btn1.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1C1614] bg-white text-[#1C1614] font-extrabold text-xs';
+          btn2.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1A1412] bg-[#FF6B35] text-white font-extrabold text-xs';
+          btn1.className = 'py-1.5 px-2 rounded-lg border-2 border-[#1A1412] bg-white text-[#1A1412] font-extrabold text-xs';
         }
         AudioEngine.playPop();
       },
 
       // =========================================================================
-      // MODE STARTERS
+      // BULLETPROOF MULTIPLAYER LOBBY & HANDSHAKE PROTOCOL
       // =========================================================================
-      async startMultiplayerRoom() {
+      openMultiplayerLobby(intent = 'host') {
         AudioEngine.playPop();
         const codeInput = document.getElementById('room-code-input');
         const nameInput = document.getElementById('player-name-input');
-        const rawCode = (codeInput?.value || 'KEDAI88').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-        this.roomCode = rawCode || 'KEDAI88';
-        this.playerName = (nameInput?.value || 'Chef Sayang').trim();
+        const normalizedCode = (codeInput?.value || 'KEDAI88').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '') || 'KEDAI88';
+        this.roomCode = normalizedCode;
+        this.playerName = (nameInput?.value || 'Chef Sayang').trim() || 'Chef Sayang';
         this.mode = 'ldr';
+        this.isHost = (intent === 'host');
+        this.inWaitingLobby = true;
+        this.partnerInfo = null;
 
-        // Default view to chosen station on mobile, or split on wide screen if desired
+        // If user clicked "Gabung Room" and left role at default 1, we still allow auto-role assignment on handshake!
+        this. preferredIntent = intent;
+
+        document.getElementById('waiting-room-code-text').textContent = this.roomCode;
+        document.getElementById('waiting-room-modal').classList.remove('hidden');
+        this.renderWaitingLobbySlots();
+
+        // Connect Multi-Transport Network
+        NetworkManager.connectRoom(this.roomCode, (type, payload, senderId, transport) => {
+          this.handleNetworkMessage(type, payload, senderId, transport);
+        });
+
+        // Start continuous Handshake Beacon (every 1.1s) so whichever player joins first or second, they ALWAYS discover each other!
+        if (this.handshakeInterval) clearInterval(this.handshakeInterval);
+        const sendBeacon = () => {
+          if (!this.inWaitingLobby && !this.state.shiftActive) return;
+          NetworkManager.broadcast('HELLO_BEACON', {
+            name: this.playerName,
+            role: this.myRole,
+            intent: this.preferredIntent,
+            shiftActive: this.state.shiftActive
+          });
+        };
+        sendBeacon();
+        this.handshakeInterval = setInterval(sendBeacon, 1100);
+      },
+
+      leaveWaitingRoom() {
+        AudioEngine.playPop();
+        this.inWaitingLobby = false;
+        if (this.handshakeInterval) {
+          clearInterval(this.handshakeInterval);
+          this.handshakeInterval = null;
+        }
+        NetworkManager.disconnect();
+        document.getElementById('waiting-room-modal').classList.add('hidden');
+      },
+
+      handleNetworkMessage(type, payload, senderId, transport) {
+        // 1. Partner Discovery & Role Auto-Negotiation
+        if (type === 'HELLO_BEACON' || type === 'LOBBY_ACK') {
+          const isNewPartner = !this.partnerInfo || this.partnerInfo.id !== senderId;
+
+          // Resolve Station Role Collision automatically if both picked the same station!
+          if (payload.role === this.myRole) {
+            if (this.preferredIntent === 'guest' && payload.intent === 'host') {
+              this.myRole = payload.role === 1 ? 2 : 1;
+            } else if (this.preferredIntent === payload.intent) {
+              // Deterministic tie-breaker using clientId string comparison
+              if (NetworkManager.clientId > senderId) {
+                this.myRole = payload.role === 1 ? 2 : 1;
+              }
+            }
+          }
+
+          this.partnerInfo = {
+            id: senderId,
+            name: payload.name || 'Chef Pasangan',
+            role: payload.role === this.myRole ? (this.myRole === 1 ? 2 : 1) : payload.role,
+            lastSeen: Date.now(),
+            transport
+          };
+
+          if (isNewPartner) {
+            AudioEngine.playServiceBell();
+            this.showToast(`🎉 ${this.partnerInfo.name} terhubung via ${transport}!`, 'green');
+            // Immediately reply with LOBBY_ACK so partner doesn't wait for next beacon tick
+            NetworkManager.broadcast('LOBBY_ACK', {
+              name: this.playerName,
+              role: this.myRole,
+              intent: this.preferredIntent,
+              shiftActive: this.state.shiftActive
+            });
+
+            // LATE-JOIN RECOVERY: If we are already inside an active shift, send full state to pull partner in!
+            if (this.state.shiftActive) {
+              NetworkManager.broadcast('START_SHIFT_SYNC', {
+                state: this.state,
+                hostId: NetworkManager.clientId
+              });
+            }
+          }
+
+          if (this.inWaitingLobby) {
+            this.renderWaitingLobbySlots();
+          }
+          this.updatePartnerHudPill();
+          return;
+        }
+
+        // 2. Station Role Swap in Lobby
+        if (type === 'SWAP_ROLES') {
+          this.myRole = payload.yourNewRole;
+          if (this.partnerInfo) {
+            this.partnerInfo.role = payload.senderNewRole;
+          }
+          AudioEngine.playPop();
+          this.showToast(`🔄 Posisi Station ditukar! Kamu sekarang di Station ${this.myRole}.`, 'amber');
+          this.renderWaitingLobbySlots();
+          return;
+        }
+
+        // 3. Floating Lobby / Kitchen Emote
+        if (type === 'EMOTE_PING') {
+          AudioEngine.playPop();
+          this.spawnFloatingEmote(`${payload.senderName}: ${payload.text}`);
+          this.showToast(`${payload.senderName}: "${payload.text}"`, payload.color || 'green');
+          return;
+        }
+
+        // 4. Launch Shift Command from Lobby
+        if (type === 'START_SHIFT_SYNC') {
+          if (payload.state) {
+            this.state = payload.state;
+          }
+          if (this.inWaitingLobby) {
+            this.inWaitingLobby = false;
+            document.getElementById('waiting-room-modal').classList.add('hidden');
+            this.viewMode = this.myRole === 1 ? 'station1' : 'station2';
+            this.enterKitchenScreen();
+            AudioEngine.playServiceBell();
+            this.showToast('🚀 Shift Dapur Dimulai Bersama Pasangan!', 'green');
+          } else {
+            this.renderAll();
+          }
+          return;
+        }
+
+        // 5. Real-Time Kitchen State Synchronization
+        if (type === 'STATE_SYNC') {
+          if (!payload.state) return;
+
+          // If we were still in the waiting lobby when a STATE_SYNC arrived, enter kitchen automatically!
+          if (this.inWaitingLobby && payload.state.shiftActive) {
+            this.inWaitingLobby = false;
+            document.getElementById('waiting-room-modal').classList.add('hidden');
+            this.viewMode = this.myRole === 1 ? 'station1' : 'station2';
+            this.state = payload.state;
+            this.enterKitchenScreen();
+            return;
+          }
+
+          // Check if partner sent a new quick-ping
+          if (payload.state.lastPing && (!this.state.lastPing || payload.state.lastPing.id !== this.state.lastPing.id)) {
+            this.showToast(payload.state.lastPing.text, payload.state.lastPing.color || 'amber');
+            this.spawnFloatingEmote(payload.state.lastPing.text);
+            AudioEngine.playPop();
+          }
+
+          this.state = payload.state;
+          this.renderAll();
+        }
+      },
+
+      renderWaitingLobbySlots() {
+        const s1Name = document.getElementById('slot1-player-name');
+        const s1Pill = document.getElementById('slot1-status-pill');
+        const s1You = document.getElementById('slot1-you-badge');
+
+        const s2Name = document.getElementById('slot2-player-name');
+        const s2Pill = document.getElementById('slot2-status-pill');
+        const s2You = document.getElementById('slot2-you-badge');
+
+        const netStatus = document.getElementById('waiting-net-status');
+        if (netStatus) {
+          if (this.partnerInfo) {
+            netStatus.textContent = `🟢 Pasangan Terhubung (${this.partnerInfo.transport} • ~${NetworkManager.lastPingMs}ms)`;
+          } else {
+            netStatus.textContent = `🟢 Server Relay Siap (${NetworkManager.connectedTransportName}) — Menunggu Pasangan...`;
+          }
+        }
+
+        if (this.myRole === 1) {
+          s1Name.textContent = this.playerName;
+          s1Pill.textContent = '🟢 SIAP';
+          s1You.classList.remove('hidden');
+
+          if (this.partnerInfo) {
+            s2Name.textContent = this.partnerInfo.name;
+            s2Pill.textContent = '🟢 TERHUBUNG';
+          } else {
+            s2Name.textContent = 'Menunggu Pasangan...';
+            s2Pill.textContent = '⏳ Menunggu...';
+          }
+          s2You.classList.add('hidden');
+        } else {
+          s2Name.textContent = this.playerName;
+          s2Pill.textContent = '🟢 SIAP';
+          s2You.classList.remove('hidden');
+
+          if (this.partnerInfo) {
+            s1Name.textContent = this.partnerInfo.name;
+            s1Pill.textContent = '🟢 TERHUBUNG';
+          } else {
+            s1Name.textContent = 'Menunggu Pasangan...';
+            s1Pill.textContent = '⏳ Menunggu...';
+          }
+          s1You.classList.add('hidden');
+        }
+      },
+
+      swapLobbyStation() {
+        const newRole = this.myRole === 1 ? 2 : 1;
+        const partnerNewRole = newRole === 1 ? 2 : 1;
+        this.myRole = newRole;
+        if (this.partnerInfo) {
+          this.partnerInfo.role = partnerNewRole;
+        }
+        AudioEngine.playPop();
+        this.renderWaitingLobbySlots();
+        NetworkManager.broadcast('SWAP_ROLES', {
+          senderNewRole: newRole,
+          yourNewRole: partnerNewRole
+        });
+      },
+
+      sendLobbyEmote(text) {
+        AudioEngine.playPop();
+        this.spawnFloatingEmote(`${this.playerName}: ${text}`);
+        NetworkManager.broadcast('EMOTE_PING', {
+          senderName: this.playerName,
+          text,
+          color: 'green'
+        });
+      },
+
+      spawnFloatingEmote(text) {
+        const stage = document.getElementById('emote-stage');
+        if (!stage) return;
+        const bubble = document.createElement('div');
+        bubble.className = 'emote-bubble px-3.5 py-2 rounded-2xl bg-[#FFF3CD] border-3 border-[#1A1412] shadow-[3px_3px_0px_#1A1412] font-extrabold text-xs sm:text-sm text-[#1A1412]';
+        bubble.textContent = text;
+        stage.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 2400);
+      },
+
+      launchCoopShiftFromLobby() {
+        AudioEngine.playServiceBell();
+        this.inWaitingLobby = false;
+        document.getElementById('waiting-room-modal').classList.add('hidden');
         this.viewMode = this.myRole === 1 ? 'station1' : 'station2';
 
         this.resetKitchenState();
         this.enterKitchenScreen();
 
-        // Setup BroadcastChannel for instant multi-tab sync
-        if (this.bcChannel) this.bcChannel.close();
-        if ('BroadcastChannel' in window) {
-          this.bcChannel = new BroadcastChannel('kedai_room_' + this.roomCode);
-          this.bcChannel.onmessage = (ev) => {
-            if (ev.data && ev.data.type === 'STATE_SYNC' && ev.data.sender !== this.userId) {
-              this.applyRemoteState(ev.data.payload);
-            }
-          };
-        }
+        NetworkManager.broadcast('START_SHIFT_SYNC', {
+          state: this.state,
+          hostId: NetworkManager.clientId
+        });
+      },
 
-        // Setup Firestore Room Listener if available
-        if (this.db && this.user) {
-          try {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const roomRef = doc(this.db, 'artifacts', appId, 'public', 'data', 'diner_rooms', this.roomCode);
-            const snap = await getDoc(roomRef);
+      updatePartnerHudPill() {
+        const pill = document.getElementById('partner-status-pill');
+        const text = document.getElementById('partner-status-text');
+        if (!pill || !text) return;
 
-            if (snap.exists()) {
-              const data = snap.data();
-              if (data.kitchenState) {
-                const parsed = JSON.parse(data.kitchenState);
-                if (parsed.shiftActive && parsed.timeLeft > 5) {
-                  this.applyRemoteState(parsed);
-                  this.showToast(`Terhubung ke Dapur Room ${this.roomCode}!`, 'green');
-                } else {
-                  await this.pushStateToCloud();
-                }
-              }
-            } else {
-              await this.pushStateToCloud();
-              this.showToast(`Room ${this.roomCode} dibuat! Ajak pasanganmu gabung.`, 'amber');
-            }
-
-            if (this.unsubscribeRoom) this.unsubscribeRoom();
-            this.unsubscribeRoom = onSnapshot(roomRef, (docSnap) => {
-              if (!docSnap.exists()) return;
-              const rData = docSnap.data();
-              if (rData.updatedBy !== this.userId && rData.kitchenState) {
-                try {
-                  const remoteState = JSON.parse(rData.kitchenState);
-                  this.applyRemoteState(remoteState);
-                } catch (e) {
-                  console.warn('Parse sync error:', e);
-                }
-              }
-            }, (err) => {
-              console.warn('Firestore snapshot fallback:', err);
-            });
-          } catch (e) {
-            console.warn('Firestore room init fallback:', e);
+        if (this.mode === 'ldr') {
+          pill.classList.remove('hidden');
+          if (this.partnerInfo) {
+            text.textContent = `${this.partnerInfo.name} (Station ${this.partnerInfo.role}) • ${NetworkManager.lastPingMs}ms`;
+          } else {
+            text.textContent = `Menunggu Partner Join (${this.roomCode})...`;
           }
-        } else {
-          this.showToast(`Room ${this.roomCode} Aktif!`, 'green');
         }
       },
 
+      // =========================================================================
+      // OTHER MODE STARTERS (AI PARTNER & SPLIT-SCREEN)
+      // =========================================================================
       startAiPartnerMode(playerStationRole) {
         AudioEngine.playPop();
         const nameInput = document.getElementById('player-name-input');
@@ -1476,7 +2046,7 @@
         this.resetKitchenState();
         this.enterKitchenScreen();
         const botTask = playerStationRole === 1 ? 'Meja Kompor & Saji' : 'Meja Potong & Cuci';
-        this.showToast(`🤖 Bot Pasangan siap bantu di ${botTask}!`, 'green');
+        this.showToast(`🤖 Bot Pasangan aktif membantu di ${botTask}!`, 'green');
       },
 
       startSoloFreeMode() {
@@ -1485,12 +2055,12 @@
         this.playerName = (nameInput?.value || 'Chef Sayang').trim();
         this.mode = 'solo';
         this.myRole = 1;
-        this.roomCode = 'CHEF-BEBAS';
+        this.roomCode = 'SPLIT-SCREEN';
         this.viewMode = window.innerWidth >= 1024 ? 'split' : 'station1';
 
         this.resetKitchenState();
         this.enterKitchenScreen();
-        this.showToast('🍳 Mode Chef Bebas dimulai! Kendalikan kedua meja.', 'amber');
+        this.showToast('🍳 Mode Split-Screen dimulai! Kendalikan kedua meja.', 'amber');
       },
 
       resetKitchenState() {
@@ -1512,7 +2082,8 @@
 
           selectedTicketId: null,
           orders: [],
-          passCounter: ['nasi_ready', 'ayam_chop', null, null, null], // Pre-populate 2 starter items so Station 2 can act immediately!
+          // Pre-populate 2 starter items on Shared Pass Counter so Station 2 can start sizzling right away!
+          passCounter: ['ayam_chop', 'sayur_chop', null, null],
 
           choppingBoard: {
             itemId: null,
@@ -1533,7 +2104,6 @@
         this.orderSpawnTimer = 0;
         this.aiBotTimer = 0;
 
-        // Spawn 2 initial customer orders right away
         this.spawnCustomerOrder();
         this.spawnCustomerOrder();
       },
@@ -1544,7 +2114,6 @@
         kitchen.classList.remove('hidden');
         kitchen.classList.add('flex');
 
-        // Configure HUD badges
         const roomLabel = document.getElementById('hud-room-label');
         const copyBtn = document.getElementById('copy-room-btn');
         const partnerPill = document.getElementById('partner-status-pill');
@@ -1554,14 +2123,14 @@
           roomLabel.textContent = `ROOM: ${this.roomCode}`;
           copyBtn.classList.remove('hidden');
           partnerPill.classList.remove('hidden');
-          partnerText.textContent = `Kamu di Station ${this.myRole}`;
+          this.updatePartnerHudPill();
         } else if (this.mode === 'ai') {
           roomLabel.textContent = `MODE + BOT PASANGAN`;
           copyBtn.classList.add('hidden');
           partnerPill.classList.remove('hidden');
           partnerText.textContent = `🤖 Bot di Station ${this.myRole === 1 ? '2' : '1'}`;
         } else {
-          roomLabel.textContent = `MODE CHEF BEBAS`;
+          roomLabel.textContent = `MODE SPLIT-SCREEN`;
           copyBtn.classList.add('hidden');
           partnerPill.classList.add('hidden');
         }
@@ -1570,15 +2139,16 @@
         this.renderAll();
 
         if (this.tickInterval) clearInterval(this.tickInterval);
-        this.tickInterval = setInterval(() => this.gameTick(), 250); // 4 ticks per second for smooth progress bars
+        this.tickInterval = setInterval(() => this.gameTick(), 250);
       },
 
       confirmExitToLobby() {
         if (this.tickInterval) clearInterval(this.tickInterval);
-        if (this.unsubscribeRoom) {
-          this.unsubscribeRoom();
-          this.unsubscribeRoom = null;
-        }
+        if (this.handshakeInterval) clearInterval(this.handshakeInterval);
+        this.inWaitingLobby = false;
+        this.state.shiftActive = false;
+        NetworkManager.disconnect();
+
         document.getElementById('kitchen-screen').classList.add('hidden');
         document.getElementById('kitchen-screen').classList.remove('flex');
         document.getElementById('lobby-screen').classList.remove('hidden');
@@ -1592,49 +2162,26 @@
         temp.select();
         document.execCommand('copy');
         document.body.removeChild(temp);
-        this.showToast(`Kode Room "${this.roomCode}" disalin! Kirim ke pasanganmu.`, 'green');
+        this.showToast(`📋 Kode Room "${this.roomCode}" disalin!`, 'green');
       },
 
-      // =========================================================================
-      // CLOUD & BROADCAST CHANNEL SYNC
-      // =========================================================================
-      async pushStateToCloud() {
+      copyInviteLink() {
+        const baseUrl = window.location.href.split('?')[0];
+        const inviteUrl = `${baseUrl}?room=${encodeURIComponent(this.roomCode)}`;
+        const temp = document.createElement('input');
+        temp.value = inviteUrl;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        this.showToast(`🔗 Link Invite Room "${this.roomCode}" disalin! Kirim ke pasanganmu.`, 'green');
+      },
+
+      pushStateToCloud() {
         if (this.mode !== 'ldr') return;
-        const payload = JSON.parse(JSON.stringify(this.state));
-
-        if (this.bcChannel) {
-          this.bcChannel.postMessage({
-            type: 'STATE_SYNC',
-            sender: this.userId,
-            payload
-          });
-        }
-
-        if (this.db && this.user) {
-          try {
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const roomRef = doc(this.db, 'artifacts', appId, 'public', 'data', 'diner_rooms', this.roomCode);
-            await setDoc(roomRef, {
-              roomCode: this.roomCode,
-              updatedBy: this.userId,
-              updatedAt: Date.now(),
-              kitchenState: JSON.stringify(payload)
-            });
-          } catch (e) {
-            // Silent fallback so gameplay never interrupts
-          }
-        }
-      },
-
-      applyRemoteState(remoteState) {
-        if (!remoteState) return;
-        // Check if partner sent a new ping
-        if (remoteState.lastPing && (!this.state.lastPing || remoteState.lastPing.id !== this.state.lastPing.id)) {
-          this.showToast(remoteState.lastPing.text, remoteState.lastPing.color || 'amber');
-          AudioEngine.playPop();
-        }
-        this.state = remoteState;
-        this.renderAll();
+        NetworkManager.broadcast('STATE_SYNC', {
+          state: this.state
+        });
       },
 
       sendPing(messageText, color = 'amber') {
@@ -1645,54 +2192,62 @@
         };
         this.state.lastPing = pingObj;
         this.showToast(pingObj.text, color);
+        this.spawnFloatingEmote(pingObj.text);
         AudioEngine.playPop();
         this.pushStateToCloud();
       },
 
       // =========================================================================
-      // MAIN GAME LOOP (RUNS EVERY 250ms = 0.25s)
+      // MAIN GAME LOOP (EVERY 250ms)
       // =========================================================================
       gameTick() {
         if (!this.state.shiftActive) return;
 
-        const dt = 0.25; // seconds per tick
+        // In LDR mode, if two players are connected, only Station 1 (or sole player) drives passive timers
+        // and syncs periodically so timers never double-speed!
+        const isTimerAuthority = (this.mode !== 'ldr') || !this.partnerInfo || (this.myRole === 1);
+        const dt = 0.25;
 
-        // 1. Shift Timer Countdown
-        this.state.timeLeft = Math.max(0, this.state.timeLeft - dt);
-        if (this.state.timeLeft <= 0) {
-          this.finishShift();
-          return;
-        }
+        if (isTimerAuthority) {
+          this.state.timeLeft = Math.max(0, this.state.timeLeft - dt);
+          if (this.state.timeLeft <= 0) {
+            this.finishShift();
+            this.pushStateToCloud();
+            return;
+          }
 
-        // 2. Customer Orders Patience Decay & Spawning
-        this.orderSpawnTimer += dt;
-        const spawnInterval = this.state.orders.length === 0 ? 1.5 : 11;
-        if (this.orderSpawnTimer >= spawnInterval && this.state.orders.length < 4) {
-          this.orderSpawnTimer = 0;
-          this.spawnCustomerOrder();
-        }
+          this.orderSpawnTimer += dt;
+          const spawnInterval = this.state.orders.length === 0 ? 1.5 : 11;
+          if (this.orderSpawnTimer >= spawnInterval && this.state.orders.length < 4) {
+            this.orderSpawnTimer = 0;
+            this.spawnCustomerOrder();
+            this.pushStateToCloud();
+          }
 
-        const patienceDecayRate = this.upgrades.lofi_lantern ? 0.7 : 1.0;
-        for (let i = this.state.orders.length - 1; i >= 0; i--) {
-          const ord = this.state.orders[i];
-          ord.patience -= dt * patienceDecayRate;
-          if (ord.patience <= 0) {
-            // Customer leaves angry
-            this.state.orders.splice(i, 1);
-            this.state.combo = 1;
-            this.state.failedCount += 1;
-            AudioEngine.playAlarmBeep();
-            this.showToast(`😡 ${ord.customerName} kelamaan nunggu & kabur! Combo Reset!`, 'red');
+          const patienceDecayRate = this.upgrades.lofi_lantern ? 0.7 : 1.0;
+          for (let i = this.state.orders.length - 1; i >= 0; i--) {
+            const ord = this.state.orders[i];
+            ord.patience -= dt * patienceDecayRate;
+            if (ord.patience <= 0) {
+              this.state.orders.splice(i, 1);
+              this.state.combo = 1;
+              this.state.failedCount += 1;
+              AudioEngine.playAlarmBeep();
+              this.showToast(`😡 ${ord.customerName} kelamaan nunggu & kabur! Combo Reset!`, 'red');
+              this.pushStateToCloud();
+            }
           }
         }
 
-        // 3. Stoves Cooking & Burning Logic
-        const maxBurnGrace = this.upgrades.nonstick_wok ? 16 : 8; // seconds after reaching 100%
+        // Stoves Cooking & Burning Logic
+        const maxBurnGrace = this.upgrades.nonstick_wok ? 16 : 8;
+        let stoveStateChanged = false;
         this.state.stoves.forEach((stove) => {
           if (stove.status === 'cooking' && stove.itemId) {
-            stove.progress = Math.min(100, stove.progress + dt * 16.5); // ~6 seconds to reach 100%
+            stove.progress = Math.min(100, stove.progress + dt * 16.5);
             if (stove.progress >= 70) {
               stove.status = 'ready';
+              stoveStateChanged = true;
             }
           } else if (stove.status === 'ready' && stove.itemId) {
             stove.progress = Math.min(100, stove.progress + dt * 14);
@@ -1700,23 +2255,29 @@
               stove.burnTimer += dt;
               if (stove.burnTimer >= maxBurnGrace) {
                 stove.status = 'burnt';
+                stoveStateChanged = true;
                 AudioEngine.playAlarmBeep();
-                this.showToast('💀 Wajan Gosong! Cepat buang & bersihkan!', 'red');
+                this.showToast('💀 Wajan Wok Gosong! Cepat buang ke tempat sampah!', 'red');
               }
             }
           }
         });
 
-        // 4. Dirty Plates Return Queue
+        if (stoveStateChanged && isTimerAuthority) {
+          this.pushStateToCloud();
+        }
+
+        // Dirty Plates Return Queue
         for (let i = this.dirtyPlateQueue.length - 1; i >= 0; i--) {
           this.dirtyPlateQueue[i] -= dt;
           if (this.dirtyPlateQueue[i] <= 0) {
             this.dirtyPlateQueue.splice(i, 1);
             this.state.dirtyPlates += 1;
+            this.pushStateToCloud();
           }
         }
 
-        // 5. Smart AI Partner Logic (if in AI mode)
+        // Smart AI Partner Logic
         if (this.mode === 'ai') {
           this.aiBotTimer += dt;
           if (this.aiBotTimer >= 0.75) {
@@ -1739,8 +2300,8 @@
           recipeId: recipe.id,
           customerName,
           avatar,
-          patience: 58,
-          maxPatience: 58
+          patience: 60,
+          maxPatience: 60
         };
 
         this.state.orders.push(newOrder);
@@ -1750,47 +2311,47 @@
       },
 
       // =========================================================================
-      // SMART AI PARTNER ENGINE (HANDLES EITHER STATION 1 OR STATION 2)
+      // SMART AI PARTNER ENGINE
       // =========================================================================
       runAiPartnerStep() {
         const botStation = this.myRole === 1 ? 2 : 1;
 
         if (botStation === 1) {
-          // Bot is on Station 1 (Prep, Chop, Pass, Wash Dishes, Pour Tea)
-          // Priority 1: Wash dirty plates if clean plates are low
+          // Bot manages Station 1
           if (this.state.dirtyPlates > 0 && this.state.cleanPlates <= 2) {
             this.washDirtyPlate(true);
             return;
           }
-
-          // Priority 2: If chopping board has a finished item, pass it
           if (this.state.choppingBoard.itemId && this.state.choppingBoard.chops >= this.state.choppingBoard.maxChops) {
             this.passFromBoard(true);
             return;
           }
-
-          // Priority 3: If chopping board has an item in progress, chop it
           if (this.state.choppingBoard.itemId) {
             this.chopIngredient(true);
             return;
           }
 
-          // Priority 4: Check what active orders need that isn't already on pass counter, stoves, or plate
           const emptyPassIdx = this.state.passCounter.findIndex(x => x === null);
           if (emptyPassIdx !== -1 && this.state.orders.length > 0) {
             const targetOrder = this.state.orders[0];
+            if (targetOrder.recipeId === 'es_teh_manis_order') {
+              if (!this.state.teaReady) {
+                this.pourSweetTea();
+              } else {
+                this.passSweetTeaToCounter(true);
+              }
+              return;
+            }
+
             const recipe = RECIPES.find(r => r.id === targetOrder.recipeId);
             if (recipe) {
-              // Map final recipe ingredients back to raw crates
               const rawMap = {
-                nasi_ready: 'nasi_ready',
+                nasi_cooked: 'nasi_raw',
                 ayam_cooked: 'ayam_raw',
-                bumbu_cooked: 'bumbu_raw',
                 sayur_cooked: 'sayur_raw',
-                mie_cooked: 'mie_raw',
-                telur_cooked: 'telur_raw'
+                mie_cooked: 'mie_raw'
               };
-              const neededRaw = recipe.ingredients.map(ing => rawMap[ing]);
+              const neededRaw = recipe.ingredients.map(ing => rawMap[ing]).filter(Boolean);
               const chosenRaw = neededRaw[Math.floor(Math.random() * neededRaw.length)];
               if (chosenRaw) {
                 this.pickCrateIngredient(chosenRaw, true);
@@ -1798,8 +2359,7 @@
             }
           }
         } else {
-          // Bot is on Station 2 (Cook in Stoves, Plate Items, Serve Order)
-          // Priority 1: Check if any stove is ready (70-100%) -> move to plate!
+          // Bot manages Station 2
           for (let s of this.state.stoves) {
             if (s.status === 'ready' && s.itemId) {
               this.collectFromStove(s.id, true);
@@ -1811,7 +2371,6 @@
             }
           }
 
-          // Priority 2: Check if current plate matches any active order -> Serve immediately!
           const matchedRecipe = this.getMatchedRecipeOnPlate();
           if (matchedRecipe) {
             const orderMatch = this.state.orders.find(o => o.recipeId === matchedRecipe.id);
@@ -1821,7 +2380,6 @@
             }
           }
 
-          // Priority 3: Inspect Pass Counter items
           for (let i = 0; i < this.state.passCounter.length; i++) {
             const itemId = this.state.passCounter[i];
             if (!itemId) continue;
@@ -1829,7 +2387,6 @@
             if (!info) continue;
 
             if (info.isPlatable) {
-              // Check if current target order needs this platable item and it's not yet on plate
               const targetOrder = this.state.orders[0];
               const recipe = targetOrder ? RECIPES.find(r => r.id === targetOrder.recipeId) : null;
               if (recipe && recipe.ingredients.includes(itemId) && !this.state.plateItems.includes(itemId)) {
@@ -1848,38 +2405,24 @@
       },
 
       // =========================================================================
-      // STATION 1 ACTIONS (CRATES, CHOPPING BOARD, SINK, SWEET TEA)
+      // STATION 1 ACTIONS (CRATES, CUTTING BOARD, SINK, SWEET TEA)
       // =========================================================================
       pickCrateIngredient(itemId, isBot = false) {
         const info = INGREDIENTS[itemId];
         if (!info) return;
 
-        if (info.needsChop) {
-          // Put onto Chopping Board
-          if (this.state.choppingBoard.itemId) {
-            if (!isBot) this.showToast('🪵 Talenan masih terisi! Selesaikan potong atau bersihkan dulu.', 'amber');
-            return;
-          }
-          const maxChops = this.upgrades.sharp_knife ? 2 : 4;
-          this.state.choppingBoard = {
-            itemId,
-            chops: 0,
-            maxChops
-          };
-          if (!isBot) AudioEngine.playPop();
-        } else {
-          // Item does not need chopping (e.g., Nasi Putih, Mie Telur, Telur Segar) -> send directly to Pass Counter!
-          const emptyIdx = this.state.passCounter.findIndex(slot => slot === null);
-          if (emptyIdx === -1) {
-            if (!isBot) this.showToast('🤝 Meja Oper Tengah penuh! Minta Station 2 ambil bahannya.', 'red');
-            return;
-          }
-          this.state.passCounter[emptyIdx] = itemId;
-          if (!isBot) {
-            AudioEngine.playPop();
-            this.showToast(`${info.name} ditaruh ke Meja Oper Tengah!`, 'green');
-          }
+        if (this.state.choppingBoard.itemId) {
+          if (!isBot) this.showToast('🪵 Talenan masih terisi! Selesaikan potong atau bersihkan dulu.', 'amber');
+          return;
         }
+
+        const maxChops = this.upgrades.sharp_knife ? 2 : 4;
+        this.state.choppingBoard = {
+          itemId,
+          chops: 0,
+          maxChops
+        };
+        if (!isBot) AudioEngine.playPop();
 
         this.renderAll();
         this.pushStateToCloud();
@@ -1893,7 +2436,6 @@
           board.chops += 1;
           AudioEngine.playChop();
 
-          // Visual shake on board
           const boardEl = document.getElementById('chopping-slot-visual');
           if (boardEl) {
             boardEl.classList.remove('animate-chop');
@@ -1901,7 +2443,6 @@
             boardEl.classList.add('animate-chop');
           }
 
-          // Auto-pass when chopping finishes if there is an open slot on Pass Counter
           if (board.chops >= board.maxChops) {
             const rawInfo = INGREDIENTS[board.itemId];
             if (rawInfo && rawInfo.choppedId) {
@@ -1915,7 +2456,7 @@
                   maxChops: this.upgrades.sharp_knife ? 2 : 4
                 };
                 if (!isBot) {
-                  this.showToast(`✨ ${choppedInfo.name} selesai dipotong & masuk Meja Oper!`, 'green');
+                  this.showToast(`✨ ${choppedInfo.name} siap & masuk Meja Oper Tengah!`, 'green');
                 }
               }
             }
@@ -1934,7 +2475,7 @@
 
         const emptyIdx = this.state.passCounter.findIndex(slot => slot === null);
         if (emptyIdx === -1) {
-          if (!isBot) this.showToast('🤝 Meja Oper Tengah penuh! Kosongkan 1 slot dulu.', 'red');
+          if (!isBot) this.showToast('🤝 Meja Oper Tengah penuh (4/4)! Minta Station 2 ambil bahannya.', 'red');
           return;
         }
 
@@ -1968,7 +2509,7 @@
         this.state.dirtyPlates -= 1;
         this.state.cleanPlates += 1;
         AudioEngine.playWaterBubble();
-        if (!isBot) this.showToast('✨ 1 Piring Bersih siap dipakai Station 2!', 'green');
+        if (!isBot) this.showToast('✨ 1 Piring Bersih selesai dicuci!', 'green');
         this.renderAll();
         this.pushStateToCloud();
       },
@@ -1981,32 +2522,46 @@
         this.pushStateToCloud();
       },
 
-      serveSweetTea() {
+      passSweetTeaToCounter(isBot = false) {
+        if (!this.state.teaReady) return;
+        const emptyIdx = this.state.passCounter.findIndex(slot => slot === null);
+        if (emptyIdx === -1) {
+          if (!isBot) this.showToast('🤝 Meja Oper Tengah penuh! Kosongkan 1 slot dulu.', 'red');
+          return;
+        }
+        this.state.passCounter[emptyIdx] = 'es_teh';
+        this.state.teaReady = false;
+        AudioEngine.playPop();
+        if (!isBot) this.showToast('🍹 Es Teh Manis ditaruh ke Meja Oper Tengah!', 'green');
+        this.renderAll();
+        this.pushStateToCloud();
+      },
+
+      serveSweetTeaTip() {
         if (!this.state.teaReady) return;
         if (this.state.orders.length === 0) {
           this.showToast('Belum ada pelanggan yang menunggu!', 'amber');
           return;
         }
 
-        // Find selected customer or the most impatient customer
         let targetOrder = this.state.orders.find(o => o.id === this.state.selectedTicketId);
         if (!targetOrder) {
           targetOrder = [...this.state.orders].sort((a, b) => a.patience - b.patience)[0];
         }
 
-        targetOrder.patience = Math.min(targetOrder.maxPatience, targetOrder.patience + 20);
+        targetOrder.patience = Math.min(targetOrder.maxPatience, targetOrder.patience + 22);
         this.state.teaReady = false;
         this.state.shiftCoins += 15;
         this.walletCoins += 15;
 
         AudioEngine.playServiceBell();
-        this.showToast(`🍹 ${targetOrder.customerName} senang dapat Es Teh Manis! (+Kesabaran & +15 Koin)`, 'green');
+        this.showToast(`🍹 ${targetOrder.customerName} segar kembali! (+Kesabaran & +15 Koin)`, 'green');
         this.renderAll();
         this.pushStateToCloud();
       },
 
       // =========================================================================
-      // PASS COUNTER ("MEJA OPER TENGAH") & STATION 2 ACTIONS
+      // PASS COUNTER & STATION 2 ACTIONS (WOK STOVES & PLATING)
       // =========================================================================
       usePassCounterItem(slotIndex, isBot = false) {
         const itemId = this.state.passCounter[slotIndex];
@@ -2014,11 +2569,10 @@
         const info = INGREDIENTS[itemId];
         if (!info) return;
 
-        // Case 1: Item needs cooking (Ayam Potong, Bumbu Rajang, Sayur Potong, Mie Mentah, Telur Mentah)
         if (info.needsCook) {
           const emptyStove = this.state.stoves.find(s => s.status === 'empty');
           if (!emptyStove) {
-            if (!isBot) this.showToast('🔥 Kedua kompor sedang penuh! Angkat masakan dulu.', 'red');
+            if (!isBot) this.showToast('🔥 Kedua Tungku Wok sedang dipakai! Angkat masakan dulu.', 'red');
             return;
           }
           emptyStove.itemId = itemId;
@@ -2032,14 +2586,13 @@
           return;
         }
 
-        // Case 2: Item is already platable (Nasi Putih or Cooked ingredients placed on Pass Counter)
         if (info.isPlatable) {
           if (this.state.cleanPlates <= 0 && this.state.plateItems.length === 0) {
             if (!isBot) this.showToast('🍽️ Piring Bersih Habis! Minta Station 1 cuci piring di wastafel!', 'red');
             return;
           }
           if (this.state.plateItems.length >= 4) {
-            if (!isBot) this.showToast('🍽️ Piring Saji penuh (maksimal 4 bahan)!', 'amber');
+            if (!isBot) this.showToast('🍽️ Piring Saji penuh (maksimal 4 item)!', 'amber');
             return;
           }
           this.state.plateItems.push(itemId);
@@ -2063,7 +2616,7 @@
         if (!stove || (stove.status !== 'cooking' && stove.status !== 'ready')) return;
         stove.burnTimer = Math.max(0, stove.burnTimer - 4);
         AudioEngine.playSizzle();
-        this.showToast('🥄 Masakan diaduk! Waktu gosong diperlambat.', 'amber');
+        this.showToast('🥄 Wok diaduk! Waktu gosong diperlambat.', 'amber');
         this.renderAll();
         this.pushStateToCloud();
       },
@@ -2076,7 +2629,6 @@
         const cookedId = rawInfo?.cookedId;
         if (!cookedId) return;
 
-        // Check if we can place directly onto the Plating Area
         if (this.state.cleanPlates > 0 && this.state.plateItems.length < 4) {
           this.state.plateItems.push(cookedId);
           stove.itemId = null;
@@ -2085,7 +2637,6 @@
           stove.status = 'empty';
           AudioEngine.playPop();
         } else {
-          // Otherwise try placing onto Pass Counter so it doesn't burn!
           const emptyPass = this.state.passCounter.findIndex(x => x === null);
           if (emptyPass !== -1) {
             this.state.passCounter[emptyPass] = cookedId;
@@ -2158,7 +2709,6 @@
           return;
         }
 
-        // Find matching customer order (prefer selected ticket if it matches, else oldest order)
         let orderIdx = this.state.orders.findIndex(o => o.id === this.state.selectedTicketId && o.recipeId === matchedRecipe.id);
         if (orderIdx === -1) {
           orderIdx = this.state.orders.findIndex(o => o.recipeId === matchedRecipe.id);
@@ -2177,11 +2727,10 @@
         const speedTip = patienceRatio > 0.6 ? 10 : 5;
         const totalReward = (matchedRecipe.reward + speedTip) * this.state.combo;
 
-        // Update state
         this.state.orders.splice(orderIdx, 1);
         this.state.plateItems = [];
         this.state.cleanPlates = Math.max(0, this.state.cleanPlates - 1);
-        this.dirtyPlateQueue.push(4.0); // Dirty plate arrives at sink in 4 seconds
+        this.dirtyPlateQueue.push(4.0);
 
         this.state.shiftCoins += totalReward;
         this.walletCoins += totalReward;
@@ -2229,8 +2778,8 @@
         const b2 = document.getElementById('tab-btn-station2');
         const bSplit = document.getElementById('tab-btn-split');
 
-        const activeClass = 'tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#F59E0B] text-[#1C1614]';
-        const inactiveClass = 'tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#FAF4E8] text-[#1C1614]';
+        const activeClass = 'tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#FFB800] text-[#1A1412]';
+        const inactiveClass = 'tactile-btn py-2 px-2 sm:px-4 font-display font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-[#F5EBE1] text-[#1A1412]';
 
         if (this.viewMode === 'station1') {
           s1.classList.remove('hidden');
@@ -2262,25 +2811,22 @@
 
         container.innerHTML = CRATE_KEYS.map(key => {
           const item = INGREDIENTS[key];
-          const actionTag = item.needsChop ? '🔪 Potong' : (item.needsCook ? '🔥 Rebus/Wok' : '🍽️ Siap Saji');
-          const tagBg = item.needsChop ? 'bg-[#2A9D8F] text-white' : (item.needsCook ? 'bg-[#F59E0B] text-[#1C1614]' : 'bg-[#E63946] text-white');
           return `
             <button onclick="GameApp.pickCrateIngredient('${item.id}')" 
-              class="tactile-btn p-2 flex flex-col items-center justify-between bg-[#FAF4E8] hover:bg-[#FEF3C7] text-center group">
-              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-[#1C1614] ${tagBg} mb-1">
-                ${actionTag}
+              class="tactile-btn p-2.5 flex flex-col items-center justify-between bg-[#F5EBE1] hover:bg-[#FFF3CD] text-center group">
+              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-[#1A1412] bg-[#2EC4B6] text-[#1A1412] mb-1">
+                🔪 Siapkan di Talenan
               </span>
               <div class="my-0.5 transform group-hover:scale-110 transition-transform">
                 ${item.svg}
               </div>
-              <span class="font-extrabold text-[11px] text-[#1C1614] leading-tight mt-1">${item.name}</span>
+              <span class="font-extrabold text-xs text-[#1A1412] leading-tight mt-1">${item.name}</span>
             </button>
           `;
         }).join('');
       },
 
       renderAll() {
-        // 1. HUD Timer, Coins, Combo, Plates
         const mins = Math.floor(this.state.timeLeft / 60);
         const secs = Math.floor(this.state.timeLeft % 60);
         const timerEl = document.getElementById('hud-timer');
@@ -2288,7 +2834,7 @@
           timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
           timerEl.className = this.state.timeLeft <= 30
             ? 'font-mono-ticket font-extrabold text-sm sm:text-base text-[#E63946] animate-pulse'
-            : 'font-mono-ticket font-extrabold text-sm sm:text-base text-[#1C1614]';
+            : 'font-mono-ticket font-extrabold text-sm sm:text-base text-[#1A1412]';
         }
 
         const coinsEl = document.getElementById('hud-coins');
@@ -2301,7 +2847,7 @@
         const cleanPlatesHud = document.getElementById('hud-clean-plates');
         if (cleanPlatesHud) cleanPlatesHud.textContent = `${this.state.cleanPlates}/${maxPlates}`;
 
-        // 2. Render Hanging Customer Order Tickets
+        // Render Hanging Customer Order Tickets
         const ordersRail = document.getElementById('orders-rail');
         const ordersCount = document.getElementById('active-orders-count');
         if (ordersCount) ordersCount.textContent = `${this.state.orders.length}/4`;
@@ -2309,7 +2855,7 @@
         if (ordersRail) {
           if (this.state.orders.length === 0) {
             ordersRail.innerHTML = `
-              <div class="col-span-2 lg:col-span-4 flex items-center justify-center text-xs font-bold text-[#FAF4E8]/60 py-6">
+              <div class="col-span-2 lg:col-span-4 flex items-center justify-center text-xs font-bold text-[#F5EBE1]/60 py-6">
                 ⏳ Menunggu pelanggan berikutnya datang ke kedai...
               </div>
             `;
@@ -2317,32 +2863,32 @@
             ordersRail.innerHTML = this.state.orders.map((ord) => {
               const rec = RECIPES.find(r => r.id === ord.recipeId) || RECIPES[0];
               const pct = Math.max(0, Math.min(100, (ord.patience / ord.maxPatience) * 100));
-              const barColor = pct > 50 ? 'bg-[#2A9D8F]' : (pct > 25 ? 'bg-[#F59E0B]' : 'bg-[#E63946] animate-pulse');
+              const barColor = pct > 50 ? 'bg-[#2EC4B6]' : (pct > 25 ? 'bg-[#FFB800]' : 'bg-[#E63946] animate-pulse');
               const isSelected = this.state.selectedTicketId === ord.id;
 
               return `
                 <div onclick="GameApp.selectTicket('${ord.id}')" 
                   class="receipt-ticket p-2.5 cursor-pointer flex flex-col justify-between ${isSelected ? 'selected-ticket' : ''}">
                   <div>
-                    <div class="flex items-center justify-between border-b border-dashed border-[#1C1614]/40 pb-1">
+                    <div class="flex items-center justify-between border-b border-dashed border-[#1A1412]/40 pb-1">
                       <div class="flex items-center gap-1.5">
                         <span class="text-base">${ord.avatar}</span>
-                        <span class="font-extrabold text-xs text-[#1C1614] truncate">${ord.customerName}</span>
+                        <span class="font-extrabold text-xs text-[#1A1412] truncate">${ord.customerName}</span>
                       </div>
-                      <span class="font-mono-ticket font-extrabold text-xs text-[#2A9D8F] bg-[#E6F4F1] px-1.5 py-0.5 rounded border border-[#1C1614]">
+                      <span class="font-mono-ticket font-extrabold text-xs text-[#1A1412] bg-[#2EC4B6] px-1.5 py-0.5 rounded border border-[#1A1412]">
                         +${rec.reward}🪙
                       </span>
                     </div>
-                    <div class="font-display font-bold text-xs sm:text-sm text-[#1C1614] mt-1.5 leading-snug">
+                    <div class="font-display font-bold text-xs sm:text-sm text-[#1A1412] mt-1.5 leading-snug">
                       ${rec.shortName}
                     </div>
-                    <div class="text-[10px] font-bold text-[#5C3A2E] bg-[#F3E9D2] px-1.5 py-1 rounded border border-[#1C1614]/20 mt-1">
+                    <div class="text-[10px] font-bold text-[#3E251B] bg-[#EDE0D1] px-1.5 py-1 rounded border border-[#1A1412]/20 mt-1">
                       ${rec.badgeText}
                     </div>
                   </div>
 
                   <div class="mt-2">
-                    <div class="w-full h-2.5 bg-[#E5E2DC] rounded-full border border-[#1C1614] overflow-hidden">
+                    <div class="w-full h-2.5 bg-[#E5E2DC] rounded-full border border-[#1A1412] overflow-hidden">
                       <div class="h-full ${barColor} transition-all duration-200" style="width: ${pct}%"></div>
                     </div>
                   </div>
@@ -2352,42 +2898,42 @@
           }
         }
 
-        // 3. Render Shared Pass Counter ("Meja Oper Tengah")
+        // Render 4 Shared Pass Counter Slots
         const passContainer = document.getElementById('pass-counter-slots');
         if (passContainer) {
           passContainer.innerHTML = this.state.passCounter.map((itemId, idx) => {
             if (!itemId) {
               return `
-                <div class="h-20 sm:h-24 rounded-xl bg-[#43281C]/60 border-2 border-dashed border-[#FAF4E8]/40 flex flex-col items-center justify-center p-1 text-center">
-                  <span class="text-[10px] font-bold text-[#FAF4E8]/50">Slot Oper ${idx + 1}</span>
-                  <span class="text-[10px] text-[#FAF4E8]/40">Kosong</span>
+                <div class="h-20 sm:h-24 rounded-xl bg-[#3E251B]/70 border-2 border-dashed border-[#F5EBE1]/40 flex flex-col items-center justify-center p-1 text-center">
+                  <span class="text-[11px] font-bold text-[#F5EBE1]/60">Slot Oper #${idx + 1}</span>
+                  <span class="text-[10px] text-[#F5EBE1]/40">Kosong</span>
                 </div>
               `;
             }
             const info = INGREDIENTS[itemId];
-            const actionHint = info.needsCook ? '🔥 Klik -> Masuk Wok' : '🍽️ Klik -> Masuk Piring';
-            const badgeBg = info.needsCook ? 'bg-[#F59E0B] text-[#1C1614]' : 'bg-[#2A9D8F] text-white';
+            const actionHint = info.needsCook ? '🔥 Klik ➔ Masuk Wok' : '🍽️ Klik ➔ Masuk Piring';
+            const badgeBg = info.needsCook ? 'bg-[#FFB800] text-[#1A1412]' : 'bg-[#2EC4B6] text-[#1A1412]';
 
             return `
               <div onclick="GameApp.usePassCounterItem(${idx})" 
-                class="tactile-btn h-20 sm:h-24 bg-[#FAF4E8] hover:bg-[#FEF3C7] p-1.5 flex flex-col items-center justify-between relative group">
+                class="tactile-btn h-20 sm:h-24 bg-[#F5EBE1] hover:bg-[#FFF3CD] p-1.5 flex flex-col items-center justify-between relative group">
                 <button onclick="GameApp.removePassCounterItem(${idx}, event)" title="Buang bahan ini"
-                  class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#E63946] text-white border border-[#1C1614] text-[10px] font-extrabold flex items-center justify-center">
+                  class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#E63946] text-white border border-[#1A1412] text-[10px] font-extrabold flex items-center justify-center">
                   ✕
                 </button>
-                <span class="text-[9px] sm:text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-[#1C1614] ${badgeBg} truncate max-w-full">
+                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-[#1A1412] ${badgeBg} truncate max-w-full">
                   ${actionHint}
                 </span>
                 <div class="my-auto transform group-hover:scale-105 transition-transform">
                   ${info.svg}
                 </div>
-                <span class="text-[10px] sm:text-[11px] font-extrabold text-[#1C1614] truncate max-w-full">${info.shortName}</span>
+                <span class="text-[11px] font-extrabold text-[#1A1412] truncate max-w-full">${info.shortName}</span>
               </div>
             `;
           }).join('');
         }
 
-        // 4. Render Station 1: Chopping Board, Sink & Sweet Tea
+        // Render Station 1: Cutting Board, Sink & Sweet Tea
         const knifeBadge = document.getElementById('knife-upgrade-badge');
         if (knifeBadge) {
           knifeBadge.classList.toggle('hidden', !this.upgrades.sharp_knife);
@@ -2403,7 +2949,7 @@
           if (!board.itemId) {
             boardVisual.innerHTML = `
               <span class="text-2xl opacity-40">🔪</span>
-              <span class="text-xs font-extrabold text-[#43281C]/70 mt-1 text-center">Klik Ayam/Cabai/Sayur di atas untuk mulai memotong</span>
+              <span class="text-xs font-extrabold text-[#3E251B]/70 mt-1 text-center">Klik bahan dari peti di atas untuk mulai memotong</span>
             `;
             chopBar.style.width = '0%';
             btnChop.disabled = true;
@@ -2414,7 +2960,7 @@
             const pct = Math.min(100, (board.chops / board.maxChops) * 100);
             boardVisual.innerHTML = `
               <div class="scale-110">${info.svg}</div>
-              <span class="text-xs font-extrabold text-[#1C1614] mt-1">${info.name} (${board.chops}/${board.maxChops})</span>
+              <span class="text-xs font-extrabold text-[#1A1412] mt-1">${info.name} (${board.chops}/${board.maxChops})</span>
             `;
             chopBar.style.width = `${pct}%`;
             btnChop.disabled = board.chops >= board.maxChops;
@@ -2437,92 +2983,94 @@
 
         const teaBadge = document.getElementById('tea-status-badge');
         const btnPourTea = document.getElementById('btn-pour-tea');
+        const btnPassTea = document.getElementById('btn-pass-tea');
         const btnServeTea = document.getElementById('btn-serve-tea');
         if (teaBadge) {
-          teaBadge.textContent = this.state.teaReady ? '🍹 Siap Antar!' : 'Kosong';
+          teaBadge.textContent = this.state.teaReady ? '🍹 Siap!' : 'Kosong';
           teaBadge.className = this.state.teaReady
-            ? 'px-2 py-0.5 rounded bg-[#2A9D8F] text-white font-mono-ticket text-[11px] font-bold border border-[#1C1614]'
-            : 'px-2 py-0.5 rounded bg-[#F59E0B] text-[#1C1614] font-mono-ticket text-[11px] font-bold border border-[#1C1614]';
+            ? 'px-2 py-0.5 rounded bg-[#2EC4B6] text-[#1A1412] font-mono-ticket text-[11px] font-bold border border-[#1A1412]'
+            : 'px-2 py-0.5 rounded bg-[#FFB800] text-[#1A1412] font-mono-ticket text-[11px] font-bold border border-[#1A1412]';
         }
         if (btnPourTea) btnPourTea.disabled = this.state.teaReady;
+        if (btnPassTea) btnPassTea.disabled = !this.state.teaReady;
         if (btnServeTea) btnServeTea.disabled = !this.state.teaReady;
 
-        // 5. Render Station 2: Two Interactive Stoves
+        // Render Station 2: Two Interactive Wok Stoves
         const stovesContainer = document.getElementById('stoves-container');
         if (stovesContainer) {
           stovesContainer.innerHTML = this.state.stoves.map((stove, idx) => {
             if (stove.status === 'empty' || !stove.itemId) {
               return `
-                <div class="tactile-steel p-3 flex flex-col items-center justify-between min-h-[150px]">
+                <div class="tactile-steel p-3 flex flex-col items-center justify-between min-h-[156px]">
                   <div class="w-full flex items-center justify-between">
-                    <span class="text-xs font-extrabold text-[#1C1614]">🔥 TUNGKU WOK #${idx + 1}</span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-white/80 text-[#5C3A2E] border border-[#1C1614]">Kosong</span>
+                    <span class="text-xs font-extrabold text-[#1A1412]">🔥 TUNGKU WOK #${idx + 1}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-white/80 text-[#5C3A2E] border border-[#1A1412]">Kosong</span>
                   </div>
-                  <div class="w-16 h-16 rounded-full bg-[#29201D] border-4 border-[#1C1614] flex items-center justify-center my-2 shadow-inner">
+                  <div class="w-16 h-16 rounded-full bg-[#271E1B] border-4 border-[#1A1412] flex items-center justify-center my-2 shadow-inner">
                     <span class="text-xl opacity-40">🍳</span>
                   </div>
-                  <span class="text-[11px] font-semibold text-[#43281C] text-center">Klik bahan dari Meja Oper untuk mulai memasak</span>
+                  <span class="text-[11px] font-semibold text-[#3E251B] text-center">Klik bahan dari Meja Oper untuk mulai memasak</span>
                 </div>
               `;
             }
 
             const info = INGREDIENTS[stove.itemId];
             let statusBadge = '';
-            let barColor = 'bg-[#F59E0B]';
+            let barColor = 'bg-[#FFB800]';
             let cardBg = 'tactile-steel';
             let actionButtons = '';
 
             if (stove.status === 'cooking') {
-              statusBadge = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FEF3C7] text-[#1C1614] border border-[#1C1614]">Sedang Dimasak...</span>`;
-              barColor = 'bg-[#F59E0B]';
+              statusBadge = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FFF3CD] text-[#1A1412] border border-[#1A1412]">🟡 Memasak...</span>`;
+              barColor = 'bg-[#FFB800]';
               actionButtons = `
-                <button disabled class="tactile-btn w-full py-2 bg-[#D6D3CD] text-[#1C1614] font-extrabold text-xs">
-                  ⏳ Tunggu Matang (${Math.floor(stove.progress)}%)
+                <button disabled class="tactile-btn w-full py-2 bg-[#D5D1C8] text-[#1A1412] font-extrabold text-xs">
+                  ⏳ Tunggu Hijau (${Math.floor(stove.progress)}%)
                 </button>
               `;
             } else if (stove.status === 'ready') {
               const maxBurn = this.upgrades.nonstick_wok ? 16 : 8;
               const burnLeft = Math.max(0, Math.ceil(maxBurn - stove.burnTimer));
-              statusBadge = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#2A9D8F] text-white border border-[#1C1614] animate-bounce">✨ MATANG! (${burnLeft}s)</span>`;
-              barColor = 'bg-[#2A9D8F]';
-              cardBg = 'bg-[#E6F4F1] border-3 border-[#1C1614] rounded-xl shadow-[4px_4px_0px_#1C1614]';
+              statusBadge = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#2EC4B6] text-[#1A1412] border border-[#1A1412] animate-bounce">🟢 MATANG! (${burnLeft}s)</span>`;
+              barColor = 'bg-[#2EC4B6]';
+              cardBg = 'bg-[#E0F7F4] border-3 border-[#1A1412] rounded-xl shadow-[4px_4px_0px_#1A1412]';
               actionButtons = `
                 <div class="flex gap-1.5 w-full">
                   <button onclick="GameApp.collectFromStove(${idx})" 
-                    class="tactile-btn flex-1 py-2 bg-[#2A9D8F] hover:bg-[#21867a] text-white font-display font-bold text-xs">
+                    class="tactile-btn flex-1 py-2 bg-[#2EC4B6] hover:bg-[#25ab9e] text-[#1A1412] font-display font-bold text-xs">
                     🍳 ANGKAT KE PIRING!
                   </button>
                   <button onclick="GameApp.stirStove(${idx})" title="Aduk agar tidak gosong"
-                    class="tactile-btn px-2.5 py-2 bg-[#F59E0B] text-[#1C1614] font-extrabold text-xs">
+                    class="tactile-btn px-2.5 py-2 bg-[#FFB800] text-[#1A1412] font-extrabold text-xs">
                     🥄 Aduk
                   </button>
                 </div>
               `;
             } else if (stove.status === 'burnt') {
-              statusBadge = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#E63946] text-white border border-[#1C1614]">💀 GOSONG!</span>`;
+              statusBadge = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#E63946] text-white border border-[#1A1412]">🔴 GOSONG!</span>`;
               barColor = 'bg-[#E63946]';
-              cardBg = 'bg-[#FEE2E2] border-3 border-[#1C1614] rounded-xl shadow-[4px_4px_0px_#1C1614]';
+              cardBg = 'bg-[#FEE2E2] border-3 border-[#1A1412] rounded-xl shadow-[4px_4px_0px_#1A1412]';
               actionButtons = `
                 <button onclick="GameApp.clearStove(${idx})" 
                   class="tactile-btn w-full py-2 bg-[#E63946] text-white font-display font-bold text-xs">
-                  🗑️ BUANG MASAKAN GOSONG
+                  🗑️ BUANG KE TEMPAT SAMPAH
                 </button>
               `;
             }
 
             return `
-              <div class="${cardBg} p-3 flex flex-col items-center justify-between min-h-[150px]">
+              <div class="${cardBg} p-3 flex flex-col items-center justify-between min-h-[156px]">
                 <div class="w-full flex items-center justify-between">
-                  <span class="text-xs font-extrabold text-[#1C1614]">🔥 TUNGKU WOK #${idx + 1}</span>
+                  <span class="text-xs font-extrabold text-[#1A1412]">🔥 TUNGKU WOK #${idx + 1}</span>
                   ${statusBadge}
                 </div>
 
-                <div class="w-16 h-16 rounded-full bg-[#29201D] border-4 border-[#1C1614] flex items-center justify-center my-1.5 relative animate-sizzle">
-                  ${stove.status === 'burnt' ? '<span class="text-2xl">炭</span>' : info.svg}
+                <div class="w-16 h-16 rounded-full bg-[#271E1B] border-4 border-[#1A1412] flex items-center justify-center my-1.5 relative animate-sizzle">
+                  ${stove.status === 'burnt' ? '<span class="text-2xl">💨</span>' : info.svg}
                 </div>
 
                 <div class="w-full mb-2">
-                  <div class="w-full h-3 bg-white rounded-full border-2 border-[#1C1614] overflow-hidden">
+                  <div class="w-full h-3 bg-white rounded-full border-2 border-[#1A1412] overflow-hidden">
                     <div class="h-full ${barColor} transition-all duration-150" style="width: ${stove.progress}%"></div>
                   </div>
                 </div>
@@ -2533,15 +3081,15 @@
           }).join('');
         }
 
-        // 6. Render Station 2: Plating Dish & Serve Button
+        // Render Station 2: Plating Dish & Serve Button
         const plateCleanInd = document.getElementById('plate-clean-indicator');
         if (plateCleanInd) {
           if (this.state.cleanPlates > 0) {
             plateCleanInd.textContent = `🍽️ ${this.state.cleanPlates} Piring Bersih Siap`;
-            plateCleanInd.className = 'px-2 py-0.5 rounded bg-[#2A9D8F] text-white text-[10px] font-extrabold border border-[#1C1614]';
+            plateCleanInd.className = 'px-2 py-0.5 rounded bg-[#2EC4B6] text-[#1A1412] text-[10px] font-extrabold border border-[#1A1412]';
           } else {
             plateCleanInd.textContent = `⚠️ Piring Bersih Habis! Cuci dulu!`;
-            plateCleanInd.className = 'px-2 py-0.5 rounded bg-[#E63946] text-white text-[10px] font-extrabold border border-[#1C1614] animate-pulse';
+            plateCleanInd.className = 'px-2 py-0.5 rounded bg-[#E63946] text-white text-[10px] font-extrabold border border-[#1A1412] animate-pulse';
           }
         }
 
@@ -2554,17 +3102,17 @@
           if (this.state.plateItems.length === 0) {
             plateList.innerHTML = `
               <div class="text-xs font-bold text-[#5C3A2E]/60 py-3 text-center">
-                Piring masih kosong • Klik 🍚 Nasi dari Meja Oper atau 🍳 Angkat masakan dari Kompor
+                Piring masih kosong • Angkat masakan matang dari Wok atau klik 🍹 Es Teh dari Meja Oper
               </div>
             `;
           } else {
             plateList.innerHTML = this.state.plateItems.map((itemId, idx) => {
               const info = INGREDIENTS[itemId];
               return `
-                <div onclick="GameApp.removeSinglePlateItem(${idx})" title="Klik untuk hapus bahan ini dari piring"
-                  class="cursor-pointer bg-[#F3E9D2] hover:bg-[#FEE2E2] border-2 border-[#1C1614] rounded-xl px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm">
+                <div onclick="GameApp.removeSinglePlateItem(${idx})" title="Klik untuk hapus item ini dari piring"
+                  class="cursor-pointer bg-[#EDE0D1] hover:bg-[#FEE2E2] border-2 border-[#1A1412] rounded-xl px-2.5 py-1.5 flex items-center gap-1.5 shadow-sm">
                   <div class="w-7 h-7 flex items-center justify-center">${info.svg}</div>
-                  <span class="text-xs font-extrabold text-[#1C1614]">${info.shortName}</span>
+                  <span class="text-xs font-extrabold text-[#1A1412]">${info.shortName}</span>
                   <span class="text-[10px] font-bold text-[#E63946] ml-0.5">✕</span>
                 </div>
               `;
@@ -2576,31 +3124,28 @@
         if (plateMatchLabel && btnServeOrder && serveSubtext) {
           if (matchedRecipe) {
             plateMatchLabel.textContent = `✅ SIAP SAJI: ${matchedRecipe.name} (+${matchedRecipe.reward}🪙)`;
-            plateMatchLabel.className = 'text-center text-xs font-extrabold py-1 rounded bg-[#2A9D8F] text-white border border-[#1C1614] mt-1.5';
-            btnServeOrder.className = 'tactile-btn w-full py-4 px-3 bg-[#F59E0B] hover:bg-[#d97706] text-[#1C1614] font-display font-bold text-base sm:text-lg flex flex-col items-center justify-center gap-0.5 animate-bounce';
-            serveSubtext.textContent = `Hidangan siap! Klik untuk antar!`;
-            serveSubtext.className = 'text-[11px] font-sans font-extrabold text-[#1C1614]';
+            plateMatchLabel.className = 'text-center text-xs font-extrabold py-1 rounded bg-[#2EC4B6] text-[#1A1412] border border-[#1A1412] mt-1.5';
+            btnServeOrder.className = 'tactile-btn w-full py-4 px-3 bg-[#FFB800] hover:bg-[#e5a600] text-[#1A1412] font-display font-bold text-base sm:text-lg flex flex-col items-center justify-center gap-0.5 animate-bounce';
+            serveSubtext.textContent = `Hidangan cocok! Klik untuk antar!`;
           } else {
             plateMatchLabel.textContent = this.state.plateItems.length === 0
               ? 'Belum ada bahan di atas piring'
-              : 'Racikan belum lengkap — cek contekan resep di bawah';
-            plateMatchLabel.className = 'text-center text-xs font-extrabold py-1 rounded bg-[#F3E9D2] text-[#5C3A2E] border border-[#1C1614]/20 mt-1.5';
-            btnServeOrder.className = 'tactile-btn w-full py-4 px-3 bg-[#2A9D8F] hover:bg-[#21867a] text-white font-display font-bold text-base sm:text-lg flex flex-col items-center justify-center gap-0.5';
+              : 'Racikan belum lengkap — cek contekan 4 menu di bawah';
+            plateMatchLabel.className = 'text-center text-xs font-extrabold py-1 rounded bg-[#EDE0D1] text-[#5C3A2E] border border-[#1A1412]/20 mt-1.5';
+            btnServeOrder.className = 'tactile-btn w-full py-4 px-3 bg-[#2EC4B6] hover:bg-[#25ab9e] text-[#1A1412] font-display font-bold text-base sm:text-lg flex flex-col items-center justify-center gap-0.5';
             serveSubtext.textContent = 'Susun bahan sesuai bon pelanggan';
-            serveSubtext.className = 'text-[11px] font-sans font-semibold text-[#E6F4F1]';
           }
         }
       },
 
       // =========================================================================
-      // SHIFT END, UPGRADE SHOP & MODALS
+      // SHIFT END, UPGRADE SHOP & NETWORK MODALS
       // =========================================================================
       finishShift() {
         this.state.shiftActive = false;
         if (this.tickInterval) clearInterval(this.tickInterval);
         AudioEngine.playServiceBell();
 
-        // Populate thermal receipt
         document.getElementById('receipt-served').textContent = `${this.state.servedCount} Porsi`;
         document.getElementById('receipt-failed').textContent = `${this.state.failedCount} Orang`;
         document.getElementById('receipt-max-combo').textContent = `x${this.state.maxCombo}`;
@@ -2620,7 +3165,31 @@
 
         if (this.tickInterval) clearInterval(this.tickInterval);
         this.tickInterval = setInterval(() => this.gameTick(), 250);
-        this.showToast('🏮 Shift Malam Baru Dimulai! Semangat!', 'green');
+        this.showToast('🏮 Shift Malam Baru Dimulai!', 'green');
+      },
+
+      openNetworkModal() {
+        AudioEngine.playPop();
+        document.getElementById('network-modal').classList.remove('hidden');
+      },
+
+      closeNetworkModal() {
+        AudioEngine.playPop();
+        document.getElementById('network-modal').classList.add('hidden');
+      },
+
+      saveCustomFirebaseUrl() {
+        const input = document.getElementById('custom-firebase-url-input');
+        const val = (input?.value || '').trim();
+        NetworkManager.firebaseUrl = val;
+        if (val) {
+          localStorage.setItem('ktm_custom_firebase_url', val);
+          this.showToast('✅ URL Firebase Realtime Database disimpan!', 'green');
+        } else {
+          localStorage.removeItem('ktm_custom_firebase_url');
+          this.showToast('Menggunakan Default Multi-Relay WSS.', 'amber');
+        }
+        this.closeNetworkModal();
       },
 
       openRecipeModal() {
@@ -2661,16 +3230,16 @@
           const canAfford = this.walletCoins >= item.cost;
 
           return `
-            <div class="p-3.5 rounded-xl bg-[#F3E9D2] border-2 border-[#1C1614] flex flex-col justify-between gap-2">
+            <div class="p-3.5 rounded-xl bg-[#EDE0D1] border-2 border-[#1A1412] flex flex-col justify-between gap-2">
               <div>
-                <div class="font-display font-bold text-sm text-[#1C1614]">${item.name}</div>
+                <div class="font-display font-bold text-sm text-[#1A1412]">${item.name}</div>
                 <p class="text-xs text-[#5C3A2E] mt-1 leading-snug">${item.desc}</p>
               </div>
               <div class="mt-2">
                 ${owned
-                  ? `<button disabled class="w-full py-2 rounded-lg bg-[#2A9D8F] text-white font-extrabold text-xs border-2 border-[#1C1614]">✅ SUDAH TERPASANG</button>`
+                  ? `<button disabled class="w-full py-2 rounded-lg bg-[#2EC4B6] text-[#1A1412] font-extrabold text-xs border-2 border-[#1A1412]">✅ SUDAH TERPASANG</button>`
                   : `<button onclick="GameApp.buyUpgrade('${item.id}', ${item.cost})" ${!canAfford ? 'disabled' : ''} 
-                      class="tactile-btn w-full py-2 bg-[#F59E0B] hover:bg-[#d97706] text-[#1C1614] font-extrabold text-xs">
+                      class="tactile-btn w-full py-2 bg-[#FFB800] hover:bg-[#e5a600] text-[#1A1412] font-extrabold text-xs">
                       Beli Upgrade (${item.cost} 🪙)
                     </button>`
                 }
@@ -2685,7 +3254,6 @@
         this.walletCoins -= cost;
         this.upgrades[upgradeId] = true;
 
-        // Apply immediate active shift bonuses if currently in a shift
         if (upgradeId === 'sharp_knife') {
           this.state.choppingBoard.maxChops = 2;
         } else if (upgradeId === 'extra_plates') {
@@ -2696,6 +3264,7 @@
         this.showToast('🎉 Upgrade berhasil dipasang di dapur!', 'green');
         this.renderShopItems();
         this.renderAll();
+        this.pushStateToCloud();
       },
 
       updateLobbyCoins() {
@@ -2708,13 +3277,13 @@
         if (!container) return;
 
         const colors = {
-          amber: 'bg-[#FEF3C7] text-[#1C1614]',
-          green: 'bg-[#2A9D8F] text-white',
+          amber: 'bg-[#FFF3CD] text-[#1A1412]',
+          green: 'bg-[#2EC4B6] text-[#1A1412]',
           red: 'bg-[#E63946] text-white'
         };
 
         const toast = document.createElement('div');
-        toast.className = `px-3.5 py-2 rounded-xl border-2 border-[#1C1614] shadow-[3px_3px_0px_#1C1614] font-extrabold text-xs sm:text-sm text-center transition-all duration-200 ${colors[type] || colors.amber}`;
+        toast.className = `px-3.5 py-2 rounded-xl border-2 border-[#1A1412] shadow-[3px_3px_0px_#1A1412] font-extrabold text-xs sm:text-sm text-center transition-all duration-200 ${colors[type] || colors.amber}`;
         toast.textContent = message;
         container.appendChild(toast);
 
@@ -2726,7 +3295,6 @@
       }
     };
 
-    window.GameApp = GameApp;
     window.addEventListener('DOMContentLoaded', () => {
       GameApp.init();
     });
